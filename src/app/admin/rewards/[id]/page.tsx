@@ -44,7 +44,7 @@ export default async function Member({ params }: { params: Promise<{ id: string 
         <h3>History</h3>
         {tx?.length ? (
           <ul className="log" style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {tx.map((t) => (
+            {(tx as { id: string; kind: string; amount: number | null; points: number; note: string | null; created_at: string }[]).map((t) => (
               <li key={t.id}>
                 <time>{new Date(t.created_at).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" })}</time>
                 <span style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>

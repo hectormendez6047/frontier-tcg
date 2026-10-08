@@ -14,7 +14,7 @@ export default async function Team() {
         <h3>Who can use the admin</h3>
         <table className="at" style={{ minWidth: 0 }}>
           <thead><tr><th>Email</th><th>Role</th></tr></thead>
-          <tbody>{(data ?? []).map((p) => <tr key={p.id}><td>{p.email}</td><td><span className="pill">{p.role}</span></td></tr>)}</tbody>
+          <tbody>{((data ?? []) as { id: string; email: string; role: string }[]).map((p) => <tr key={p.id}><td>{p.email}</td><td><span className="pill">{p.role}</span></td></tr>)}</tbody>
         </table>
       </div>
       <div className="panel">
