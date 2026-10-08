@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Saira_Condensed, Barlow, IBM_Plex_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -19,15 +20,18 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#0a0a0a", colorScheme: "dark", viewportFit: "cover", width: "device-width", initialScale: 1 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const bare = (await headers()).get("x-ftcg-bare") === "1";
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body>
         <CartProvider>
-          <a href="#main" className="sr">Skip to content</a>
-          <Header />
-          <main id="main" tabIndex={-1}>{children}</main>
-          <Footer />
+          {bare ? children : (<>
+            <a href="#main" className="sr">Skip to content</a>
+            <Header />
+            <main id="main" tabIndex={-1}>{children}</main>
+            <Footer />
+          </>)}
         </CartProvider>
       </body>
     </html>

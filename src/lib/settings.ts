@@ -23,6 +23,9 @@ export const DEFAULT_SETTINGS: Settings = {
   instagram: "",
   facebook: "",
   tiktok: "",
+  comingSoon: true,
+  comingSoonMessage:
+    "Our online store is almost ready. Soon you'll be able to search our live inventory, check stock and order singles, sealed product and sports cards from Laredo.",
 };
 
 export function rewardExplainer(s: Pick<Settings, "pointsPerDollar" | "rewardThreshold" | "rewardAmount">): string {

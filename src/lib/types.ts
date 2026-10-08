@@ -66,6 +66,8 @@ export type Settings = {
   instagram: string;
   facebook: string;
   tiktok: string;
+  comingSoon: boolean;
+  comingSoonMessage: string;
 };
 
 export type StoreEvent = {

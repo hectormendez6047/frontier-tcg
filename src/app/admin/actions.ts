@@ -249,6 +249,7 @@ const SettingsInput = z.object({
   pointsPerDollar: z.coerce.number().min(0).max(100), rewardThreshold: z.coerce.number().int().min(1).max(1000000), rewardAmount: z.coerce.number().min(0).max(10000),
   aboutText: z.string().max(5000),
   instagram: z.string().max(300), facebook: z.string().max(300), tiktok: z.string().max(300),
+  comingSoon: z.boolean(), comingSoonMessage: z.string().max(600),
 }).partial();
 
 export async function saveSettings(raw: Record<string, unknown>): Promise<Result> {

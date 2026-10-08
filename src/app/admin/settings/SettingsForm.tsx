@@ -39,6 +39,21 @@ export function SettingsForm({ initial }: { initial: Settings }) {
       setMsg(r.ok ? { t: "Settings saved. The store uses them now." } : { t: r.error, err: true });
       if (r.ok) router.refresh();
     }}>
+      <div className="panel" style={{ borderColor: s.comingSoon ? "var(--gold)" : undefined }}>
+        <h3>Store visibility</h3>
+        <div className="form">
+          <div className="fld">
+            <label className="check" style={{ font: "inherit", textTransform: "none", letterSpacing: 0, color: "var(--fg)", minHeight: 42 }}>
+              <input type="checkbox" checked={!!s.comingSoon} onChange={(e) => set("comingSoon", e.target.checked)} />
+              <span><b>Coming soon mode</b>: visitors see a coming-soon page. Signed-in staff still see and manage the full store.</span>
+            </label>
+          </div>
+          {area("comingSoonMessage", "Coming-soon message")}
+        </div>
+        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>
+          {s.comingSoon ? "The store is hidden from the public." : "The store is open to the public."} Changes take up to 15 seconds to reach every visitor.
+        </p>
+      </div>
       <div className="panel"><h3>Checkout</h3><div className="form">
         {b("shippingEnabled", "Shipping enabled")}{b("pickupEnabled", "Local pickup enabled")}
         {t("pickupFee", "Pickup processing fee $", 2, "number")}{t("shippingFlat", "Flat shipping rate $", 2, "number")}{t("freeShippingOver", "Free shipping over $ (0 = off)", 2, "number")}
