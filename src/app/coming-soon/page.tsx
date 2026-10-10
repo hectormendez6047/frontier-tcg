@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getSettings } from "@/lib/data";
+import { NewsletterForm } from "@/components/NewsletterForm";
 
 export const metadata: Metadata = {
   title: "Frontier TCG",
@@ -21,7 +22,13 @@ export default async function ComingSoon() {
         <p className="eyebrow">Trading • Collectibles • Gaming</p>
         <h1>{maint ? "Be right back" : "Coming soon"}</h1>
         <p className="soon-msg">{maint ? st.maintenanceMessage : st.comingSoonMessage}</p>
-        {!maint && <p style={{ margin: 0 }}><Link className="btn" href="/signup">Create your account early</Link></p>}
+        {!maint && (<>
+          <div style={{ width: "100%", maxWidth: 440, display: "grid", gap: 8, justifyItems: "center" }}>
+            <span className="muted" style={{ fontSize: 14 }}>Get an email the day we open:</span>
+            <NewsletterForm source="coming_soon" cta="Notify me" />
+          </div>
+          <p style={{ margin: 0, fontSize: 14 }} className="muted">or <Link href="/signup" style={{ color: "var(--gold)" }}>create your account early</Link></p>
+        </>)}
         <dl className="soon-info">
           {st.address && (<div><dt>Shop</dt><dd>{st.address}</dd></div>)}
           {st.email && (<div><dt>Email</dt><dd>{st.email}</dd></div>)}

@@ -50,12 +50,16 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
         if (!window.Square) throw new Error("Square didn't load");
         const payments = window.Square.payments(appId, locationId);
         const card = await payments.card({
+          // Square draws its fields on a white background, so use dark text that's readable there.
           style: {
-            input: { backgroundColor: "#0a0a0a", color: "#f4f1ea", fontSize: "16px" },
-            "input::placeholder": { color: "#6f6a61" },
-            ".input-container": { borderColor: "#3a362f", borderRadius: "4px" },
+            input: { color: "#111111", fontSize: "16px" },
+            "input::placeholder": { color: "#767676" },
+            ".input-container": { borderColor: "#c9c4b8", borderRadius: "4px" },
             ".input-container.is-focus": { borderColor: "#C39443" },
-            ".message-text": { color: "#a39d91" }, ".message-icon": { color: "#a39d91" },
+            ".input-container.is-error": { borderColor: "#c0392b" },
+            "input.is-error": { color: "#c0392b" },
+            ".message-text": { color: "#555555" }, ".message-icon": { color: "#555555" },
+            ".message-text.is-error": { color: "#c0392b" }, ".message-icon.is-error": { color: "#c0392b" },
           },
         });
         if (cancelled) { await card.destroy(); return; }
@@ -180,7 +184,7 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
             {!ready ? (
               <div className="notice"><b>Online payment isn&apos;t connected yet.</b> No order is placed and no card is charged.</div>
             ) : (<>
-              <div id="card-container" style={{ minHeight: 90 }} />
+              <div style={{ background: "#ffffff", borderRadius: "var(--r)", padding: "14px 14px 2px", border: "1px solid var(--line-2)" }}><div id="card-container" style={{ minHeight: 90 }} /></div>
               {!cardReady && !cardError && <p className="muted" style={{ fontSize: 14, margin: 0 }}>Loading secure card form…</p>}
               {cardError && <p className="err" role="alert">{cardError}</p>}
               <p className="muted" style={{ fontSize: 13, margin: "6px 0 0" }}>Payments are processed securely by Square. We never see or store your full card number.</p>

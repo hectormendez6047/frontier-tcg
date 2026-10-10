@@ -6,6 +6,7 @@ import { CategoryTiles } from "@/components/CategoryTiles";
 import { EventRow } from "@/components/EventRow";
 import { EmptyState } from "@/components/EmptyState";
 import { money } from "@/lib/format";
+import { NewsletterForm } from "@/components/NewsletterForm";
 
 export default async function Home() {
   const [st, facets, featured, newest, sealed, events] = await Promise.all([
@@ -101,6 +102,12 @@ export default async function Home() {
             </>)}
           </div>
         </div>
+      </section>
+      <section className="block" style={{ paddingTop: 0 }}>
+        <div className="wrap"><div className="panel" style={{ display: "flex", justifyContent: "space-between", gap: 24, alignItems: "center", flexWrap: "wrap", margin: 0 }}>
+          <div><h3 style={{ fontSize: 24, margin: "0 0 6px" }}>Restocks, new sets and events</h3><p className="muted" style={{ margin: 0 }}>Get our emails. Unsubscribe any time.</p></div>
+          <div style={{ flex: "1 1 320px", maxWidth: 440 }}><NewsletterForm source="home" /></div>
+        </div></div>
       </section>
     </>
   );

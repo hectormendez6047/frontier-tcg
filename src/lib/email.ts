@@ -2,10 +2,20 @@
  * Transactional email through Resend (resend.com). If RESEND_API_KEY isn't set, emails are skipped
  * and the store keeps working; customers still see their order on the website.
  */
+import { createHmac, timingSafeEqual } from "crypto";
 import { money, siteUrl } from "./format";
 
 const FROM = () => process.env.EMAIL_FROM || "Frontier TCG <orders@frontiertcgshop.com>";
 export const emailConfigured = () => !!process.env.RESEND_API_KEY;
+
+// ─── Unsubscribe links (signed so nobody can unsubscribe someone else) ───
+const secret = () => process.env.EMAIL_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "dev-only";
+export const unsubscribeSig = (email: string) => createHmac("sha256", secret()).update(email.trim().toLowerCase()).digest("base64url").slice(0, 32);
+export function verifyUnsubscribe(email: string, sig: string) {
+  const a = Buffer.from(unsubscribeSig(email)); const b = Buffer.from(sig || "");
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+export const unsubscribeUrl = (email: string) => `${siteUrl()}/unsubscribe?e=${encodeURIComponent(email.trim().toLowerCase())}&s=${unsubscribeSig(email)}`;
 
 async function send(to: string | string[], subject: string, html: string, text: string) {
   if (!emailConfigured()) return false;
@@ -31,12 +41,12 @@ export type EmailOrder = {
   items: { name: string; details: string | null; quantity: number; line_total: number }[];
 };
 
-function layout(title: string, body: string) {
+function layout(title: string, body: string, footer = "") {
   return `<!doctype html><html><body style="margin:0;background:#0a0a0a;font-family:Helvetica,Arial,sans-serif;color:#f4f1ea">
 <div style="max-width:560px;margin:0 auto;padding:28px 20px">
 <div style="font:800 24px/1 Arial Narrow,Arial,sans-serif;letter-spacing:.02em"><span style="color:#C39443">FRONTIER</span> TCG</div>
 <h1 style="font:700 22px/1.3 Arial,sans-serif;margin:24px 0 8px">${esc(title)}</h1>${body}
-<p style="color:#6f6a61;font-size:12px;margin-top:32px">Frontier TCG · Laredo, Texas · <a style="color:#a39d91" href="${siteUrl()}">frontiertcgshop.com</a></p>
+<p style="color:#6f6a61;font-size:12px;margin-top:32px">Frontier TCG · Laredo, Texas · <a style="color:#a39d91" href="${siteUrl()}">frontiertcgshop.com</a></p>${footer}
 </div></body></html>`;
 }
 
@@ -90,4 +100,63 @@ export async function sendNewOrderAlert(to: string, o: EmailOrder) {
   const html = layout(`New order #${o.number}`, `<p>${esc(o.full_name)} (${esc(o.email)}) placed an order for <b>${money(o.total)}</b> · ${o.fulfillment === "pickup" ? "Local pickup" : "Ship"}.</p>${itemsTable(o)}
     <p><a href="${siteUrl()}/admin/orders/${o.id}" style="color:#C39443">Open in admin</a></p>`);
   return send(to, `New order #${o.number} · ${money(o.total)}`, html, `New order #${o.number} for ${money(o.total)}.`);
+}
+
+export async function sendRefund(o: EmailOrder, amount: number) {
+  const full = amount >= Number(o.total) - 0.005;
+  const html = layout(`Refund for order #${o.number}`,
+    `<p>We've refunded <b>${money(amount)}</b> to the card you used${full ? ", the full amount of your order" : ""}.</p>
+     <p>Refunds usually show on your statement within 5–10 business days, depending on your bank.</p>${itemsTable(o)}
+     <p><a href="${orderLink(o)}" style="color:#C39443">View your order</a></p>`);
+  return send(o.email, `Refund for order #${o.number} · Frontier TCG`, html, `We refunded ${money(amount)} for order #${o.number}. It can take 5-10 business days to appear.`);
+}
+
+export async function sendRestock(email: string, p: { name: string; slug: string; price: number; details?: string }) {
+  const url = `${siteUrl()}/p/${p.slug}`;
+  const html = layout(`${p.name} is back in stock`,
+    `<p>Good news: <b>${esc(p.name)}</b>${p.details ? ` (${esc(p.details)})` : ""} is back in stock at ${money(p.price)}.</p>
+     <p>Stock is limited and first come, first served.</p>
+     <p><a href="${url}" style="display:inline-block;background:#C39443;color:#120e06;padding:12px 18px;border-radius:4px;text-decoration:none;font-weight:700">Get it now</a></p>
+     <p style="color:#a39d91;font-size:13px">You asked us to tell you when this was back. This is a one-time alert.</p>`);
+  return send(email, `Back in stock: ${p.name}`, html, `${p.name} is back in stock at ${money(p.price)}: ${url}`);
+}
+
+// ─── Newsletters ───
+export type Campaign = { subject: string; heading: string; body: string; buttonLabel?: string; buttonUrl?: string };
+
+/** Plain text with blank lines between paragraphs → simple, readable HTML. */
+export function campaignHtml(c: Campaign, email: string, address: string) {
+  const paras = c.body.trim().split(/\n\s*\n/).map((p) => `<p style="font-size:15px;line-height:1.6;color:#d6d1c6">${esc(p).replace(/\n/g, "<br>")}</p>`).join("");
+  const button = c.buttonLabel && c.buttonUrl && /^https:\/\//.test(c.buttonUrl)
+    ? `<p><a href="${esc(c.buttonUrl)}" style="display:inline-block;background:#C39443;color:#120e06;padding:12px 18px;border-radius:4px;text-decoration:none;font-weight:700">${esc(c.buttonLabel)}</a></p>` : "";
+  const footer = `<p style="color:#6f6a61;font-size:12px">${esc(address)}<br>You're getting this because you signed up for Frontier TCG emails. <a style="color:#a39d91" href="${unsubscribeUrl(email)}">Unsubscribe</a> · <a style="color:#a39d91" href="${siteUrl()}/account/emails">Email preferences</a></p>`;
+  return layout(c.heading || c.subject, paras + button, footer);
+}
+
+/** Send a newsletter in batches of 100. Returns how many were accepted. */
+export async function sendCampaign(c: Campaign, recipients: string[], address: string) {
+  if (!emailConfigured()) return { sent: 0, failed: recipients.length };
+  let sent = 0, failed = 0;
+  for (let i = 0; i < recipients.length; i += 100) {
+    const chunk = recipients.slice(i, i + 100);
+    const payload = chunk.map((to) => ({
+      from: FROM(), to, subject: c.subject,
+      html: campaignHtml(c, to, address),
+      text: `${c.heading || c.subject}\n\n${c.body}\n\n${c.buttonUrl ?? ""}\n\nUnsubscribe: ${unsubscribeUrl(to)}`,
+      headers: { "List-Unsubscribe": `<${unsubscribeUrl(to)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+    }));
+    try {
+      const res = await fetch("https://api.resend.com/emails/batch", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) sent += chunk.length; else failed += chunk.length;
+    } catch { failed += chunk.length; }
+  }
+  return { sent, failed };
+}
+
+export async function sendCampaignTest(c: Campaign, to: string, address: string) {
+  return send(to, `[Test] ${c.subject}`, campaignHtml(c, to, address), c.body);
 }

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checkRole } from "@/lib/auth";
 import { PRODUCT_TYPES } from "@/lib/constants";
 import { DEFAULT_SETTINGS } from "@/lib/settings";
+import { notifyRestocks } from "@/lib/restock";
 
 type Result<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
 
@@ -106,6 +107,7 @@ export async function saveProduct(raw: ProductPayload): Promise<Result<{ id: str
   }
 
   revalidateStore();
+  await notifyRestocks([v.id]);
   return { ok: true, data: { id: v.id } };
 }
 
@@ -119,6 +121,7 @@ export async function updateProductField(id: string, field: "price" | "quantity"
   const { error } = await supabase.from("products").update({ [field]: v }).eq("id", id);
   if (error) return fail(friendly(error.message));
   revalidateStore();
+  if (field === "quantity" && v > 0) await notifyRestocks([id]);
   return { ok: true };
 }
 
@@ -175,6 +178,7 @@ export async function bulkUpdate(raw: z.input<typeof BulkInput>): Promise<Result
   const { error } = await supabase.from("products").update(patch).in("id", ids);
   if (error) return fail(friendly(error.message));
   revalidateStore();
+  if (action === "quantity" || action === "restore") await notifyRestocks(ids);
   return { ok: true, data: { count: ids.length } };
 }
 
@@ -240,6 +244,7 @@ export async function commitImport(rows: z.input<typeof ImportRow>[]): Promise<R
     entity_name: `${created} new, ${updated} updated`,
   });
   revalidateStore();
+  if (updated) await notifyRestocks();
   return { ok: true, data: { created, updated, failed: failed.slice(0, 50) } };
 }
 

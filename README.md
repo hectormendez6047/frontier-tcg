@@ -21,6 +21,8 @@ You need three free accounts: **GitHub** (holds the code), **Supabase** (databas
 
 **Update 3 (checkout and orders):** run `supabase/migrations/0003_orders.sql` the same way, then add the Square keys and `SUPABASE_SERVICE_ROLE_KEY` in Vercel (see `.env.example`).
 
+**Update 4 (emails):** run `supabase/migrations/0004_emails.sql`, then follow "Make account emails work" below and add `RESEND_API_KEY` in Vercel.
+
 ### 2. Create your owner login
 
 1. In Supabase, go to **Authentication → Users → Add user → Create new user**.

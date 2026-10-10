@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Pages that stay reachable while the store is closed. Staff sign-in and admin always work.
 // During "coming soon" customers can still create and manage accounts; during maintenance they can't.
-const OPEN_ALWAYS = ["/login", "/auth", "/admin", "/no-access", "/coming-soon"];
+const OPEN_ALWAYS = ["/login", "/auth", "/admin", "/no-access", "/coming-soon", "/unsubscribe", "/api/unsubscribe", "/api/subscribe"];
 const OPEN_COMING_SOON = [...OPEN_ALWAYS, "/signup", "/account"];
 
 type Mode = "live" | "coming_soon" | "maintenance";

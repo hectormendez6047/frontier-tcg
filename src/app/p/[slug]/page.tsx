@@ -10,6 +10,7 @@ import { Price, Stock } from "@/components/Price";
 import { AddToCart } from "@/components/AddToCart";
 import { ProductGrid } from "@/components/ProductCard";
 import { SaveButton } from "@/components/SaveButton";
+import { StockAlert } from "@/components/StockAlert";
 import { createClient } from "@/lib/supabase/server";
 import { KIND_LABEL } from "@/lib/constants";
 
@@ -80,6 +81,7 @@ export default async function ProductPage({ params }: Props) {
           <div><Price p={p} big /></div>
           <div style={{ marginTop: 12 }}><Stock available={p.available_quantity} lowAt={lowAt} /></div>
           <div className="buy"><AddToCart id={p.id} name={p.name} available={p.available_quantity} /><SaveButton productId={p.id} initial={!!fav} path={`/p/${p.slug}`} /></div>
+          {p.available_quantity <= 0 && <StockAlert productId={p.id} defaultEmail={user?.email ?? ""} />}
           {p.description && <div className="prose" style={{ marginTop: 24 }}><p>{p.description}</p></div>}
           <dl className="spec">
             {rows.filter(([, v]) => v).map(([k, v]) => (<div key={k} style={{ display: "contents" }}><dt>{k}</dt><dd>{v}</dd></div>))}

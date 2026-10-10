@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRole } from "@/lib/auth";
 import { refundPayment, toCents } from "@/lib/square";
-import { sendReadyForPickup, sendShipped, type EmailOrder } from "@/lib/email";
+import { sendReadyForPickup, sendRefund, sendShipped, type EmailOrder } from "@/lib/email";
+import { notifyRestocks } from "@/lib/restock";
 
 type Result = { ok: true; emailed?: boolean } | { ok: false; error: string };
 const fail = (error: string): Result => ({ ok: false, error });
@@ -73,7 +74,10 @@ export async function refundOrder(id: string, amount: number, restock: boolean, 
   if (!r.ok) return fail(`Square didn't accept the refund: ${r.message}`);
   const { error } = await admin.rpc("order_mark_refunded", { p_order: id, p_amount: amt, p_restock: restock, p_actor: viewer!.id });
   if (error) return fail("The refund went through in Square, but the order couldn't be updated here. Note it on the order.");
+  const eo = await emailOrder(id);
+  const emailed = eo ? await sendRefund(eo, amt) : false;
+  if (restock) await notifyRestocks();
   revalidatePath("/admin/orders", "layout");
   revalidatePath("/", "layout");
-  return { ok: true };
+  return { ok: true, emailed };
 }

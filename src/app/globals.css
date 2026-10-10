@@ -209,7 +209,7 @@ section.block{padding-block:56px}
 .ev .d span{font:500 11px/1 var(--mono);letter-spacing:.12em;color:var(--gold)}
 .ev h3{font-size:20px}
 @media (max-width:560px){.ev{grid-template-columns:60px minmax(0,1fr)}.ev .r{grid-column:2}}
-.newsletter{display:flex;gap:8px;max-width:440px}
+.newsletter{display:flex;gap:8px;max-width:440px;flex-wrap:wrap;position:relative;width:100%}
 .newsletter input{flex:1;min-width:0;height:44px;border:1px solid var(--line-2);background:var(--bg);border-radius:var(--r);padding:0 12px}
 
 footer.site{border-top:1px solid var(--line);padding-block:48px 36px;margin-top:24px}
