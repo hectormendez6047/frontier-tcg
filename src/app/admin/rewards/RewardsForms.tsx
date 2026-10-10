@@ -1,7 +1,7 @@
 "use client";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { addMember, deleteMember, rewardsAction, saveSettings } from "../actions";
+import { addMember, deleteMember, issueReward, rewardsAction, saveSettings, voidReward } from "../actions";
 import { rewardExplainer } from "@/lib/settings";
 
 export function MemberSearch({ initial }: { initial: string }) {
@@ -70,7 +70,7 @@ export function ProgramForm(props: { pointsPerDollar: number; rewardThreshold: n
       <div className="fld s2"><label htmlFor="rw-ppd">Points earned per $1 spent</label><input id="rw-ppd" type="number" step="0.5" min={0} value={v.pointsPerDollar} onChange={(e) => setV({ ...v, pointsPerDollar: e.target.value })} /></div>
       <div className="fld s2"><label htmlFor="rw-th">Points needed for a reward</label><input id="rw-th" type="number" step={1} min={1} value={v.rewardThreshold} onChange={(e) => setV({ ...v, rewardThreshold: e.target.value })} /></div>
       <div className="fld s2"><label htmlFor="rw-amt">Reward value ($ off)</label><input id="rw-amt" type="number" step="0.01" min={0} value={v.rewardAmount} onChange={(e) => setV({ ...v, rewardAmount: e.target.value })} /></div>
-      <p className="muted" style={{ gridColumn: "span 6", margin: 0, fontSize: 14 }}>Preview: {preview}</p>
+      <p className="muted" style={{ gridColumn: "span 6", margin: 0, fontSize: 14 }}>Preview: {preview} The points needed and reward value here are what customers are told. Set up the matching points reward under Rewards &amp; giveaways.</p>
       <div className="fld" style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
         <button className="btn gold sm" type="submit">Save rules</button>
         {msg && <span className={msg.err ? "err" : "muted"} role="status">{msg.t}</span>}
@@ -79,9 +79,14 @@ export function ProgramForm(props: { pointsPerDollar: number; rewardThreshold: n
   );
 }
 
-export function MemberActions({ memberId, points, threshold, rewardAmount, pointsPerDollar, canDelete, name }: {
-  memberId: string; points: number; threshold: number; rewardAmount: number; pointsPerDollar: number; canDelete: boolean; name: string;
+type CatalogOpt = { id: string; name: string; label: string; points_cost: number; left: number | null };
+type HeldReward = { id: string; code: string; status: string; name: string; label: string; issued_at: string; expires_at: string | null; redeemed_at: string | null };
+const shortDate = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Chicago" }) : "");
+
+export function MemberActions({ memberId, points, pointsPerDollar, canDelete, name, catalog, held }: {
+  memberId: string; points: number; pointsPerDollar: number; canDelete: boolean; name: string; catalog: CatalogOpt[]; held: HeldReward[];
 }) {
+  const [giveId, setGiveId] = useState(catalog[0]?.id ?? "");
   const router = useRouter();
   const [amt, setAmt] = useState("");
   const [adj, setAdj] = useState(""), [note, setNote] = useState("");
@@ -95,7 +100,7 @@ export function MemberActions({ memberId, points, threshold, rewardAmount, point
     const r = await rewardsAction(memberId, kind, amount, n);
     setBusy(false);
     if (!r.ok) return setMsg({ t: r.error, err: true });
-    setMsg({ t: kind === "redeem" ? `Redeemed. Give the customer $${rewardAmount.toFixed(2)} off at the register.` : "Points updated." });
+    setMsg({ t: "Points updated." });
     setAmt(""); setAdj(""); setNote("");
     router.refresh();
   }
@@ -114,11 +119,21 @@ export function MemberActions({ memberId, points, threshold, rewardAmount, point
           <p className="muted" style={{ margin: 0, fontSize: 13.5 }}>Points are calculated from your rewards rules.</p>
         </div>
         <div>
-          <div className="eyebrow">Redeem a reward</div>
-          <p style={{ margin: 0, fontSize: 15 }}>Uses {threshold} points and gives the customer ${rewardAmount.toFixed(2)} off. Apply the discount at the register.</p>
-          <button className={`btn${points >= threshold ? " gold" : ""}`} type="button" disabled={busy || points < threshold} style={{ alignSelf: "flex-start" }} onClick={() => act("redeem", null)}>
-            Redeem ${rewardAmount.toFixed(2)} off
-          </button>
+          <div className="eyebrow">Give a reward</div>
+          {catalog.length ? (<>
+            <div className="fld"><label htmlFor="give-r">Reward</label>
+              <select id="give-r" value={giveId} onChange={(e) => setGiveId(e.target.value)}>
+                {catalog.map((c) => <option key={c.id} value={c.id} disabled={c.left === 0}>{c.name} · {c.label}{c.points_cost ? ` · ${c.points_cost} pts` : " · free"}{c.left === 0 ? " · none left" : ""}</option>)}
+              </select></div>
+            {(() => { const c = catalog.find((x) => x.id === giveId); return c ? (
+              <p className="muted" style={{ margin: 0, fontSize: 13.5 }}>{c.points_cost ? (points >= c.points_cost ? `Uses ${c.points_cost} of ${name}'s ${points} points.` : `Needs ${c.points_cost} points. ${name} has ${points}.`) : "No points needed."}{c.left != null ? ` ${c.left} left to give.` : ""}</p>
+            ) : null; })()}
+            <button className="btn gold" type="button" style={{ alignSelf: "flex-start" }} disabled={busy || !giveId}
+              onClick={async () => { setBusy(true); setMsg(null); const r = await issueReward(giveId, { memberIds: [memberId] }); setBusy(false);
+                if (!r.ok) return setMsg({ t: r.error, err: true });
+                if (!r.data!.count) return setMsg({ t: "That reward has run out.", err: true });
+                setMsg({ t: "Reward given. The code is in the list below." }); router.refresh(); }}>Give reward</button>
+          </>) : <p className="muted" style={{ margin: 0, fontSize: 14 }}>No active rewards yet. Set them up under Rewards &amp; giveaways.</p>}
         </div>
       </div>
       <div className="panel">
@@ -128,6 +143,29 @@ export function MemberActions({ memberId, points, threshold, rewardAmount, point
           <div className="fld s4"><label htmlFor="adj-note">Reason</label><input id="adj-note" placeholder="Event bonus, correction, returned item…" value={note} onChange={(e) => setNote(e.target.value)} /></div>
           <div className="fld"><button className="btn sm" type="submit" disabled={busy} style={{ alignSelf: "flex-start" }}>Apply adjustment</button></div>
         </form>
+      </div>
+      <div className="panel">
+        <h3>{name}&apos;s rewards</h3>
+        {held.length ? (
+          <div className="tscroll"><table className="at" style={{ minWidth: 520 }}>
+            <thead><tr><th>Code</th><th>Reward</th><th>Given</th><th>Status</th><th></th></tr></thead>
+            <tbody>{held.map((h) => {
+              const expired = h.status === "available" && h.expires_at && new Date(h.expires_at) < new Date();
+              return (
+                <tr key={h.id}>
+                  <td className="mono">{h.code}</td>
+                  <td>{h.name}<div className="muted" style={{ fontSize: 12.5 }}>{h.label}</div></td>
+                  <td className="mono" style={{ fontSize: 13 }}>{shortDate(h.issued_at)}{h.expires_at ? <div className="muted">expires {shortDate(h.expires_at)}</div> : null}</td>
+                  <td><span className={`pill ${h.status === "available" && !expired ? "active" : "archived"}`}>{expired ? "Expired" : h.status === "available" ? "Ready to use" : h.status === "redeemed" ? `Used ${shortDate(h.redeemed_at)}` : "Cancelled"}</span></td>
+                  <td>{h.status === "available" && !expired && (
+                    <button className="btn sm" type="button" onClick={async () => { const r = await voidReward(h.id); if (!r.ok) return setMsg({ t: r.error, err: true }); setMsg({ t: "Reward cancelled. Any points spent were returned." }); router.refresh(); }}>Cancel</button>
+                  )}</td>
+                </tr>
+              );
+            })}</tbody>
+          </table></div>
+        ) : <p className="muted" style={{ margin: 0 }}>No rewards yet.</p>}
+        <p className="muted" style={{ fontSize: 13.5, margin: "10px 0 0" }}>To use a reward at the register, enter its code under Redeem a reward code on the Members tab.</p>
       </div>
       {canDelete && (confirm ? (
         <div className="confirm">Delete {name} and their points history?

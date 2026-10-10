@@ -18,20 +18,20 @@ export function LoginForm({ next }: { next: string }) {
     setBusy(true); setErr("");
     const supabase = createClient();
     if (mode === "reset") {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/login` });
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/auth/callback?next=/account/password` });
       setBusy(false);
-      if (error) setErr("Couldn't send the reset email. Check the address and try again.");
+      if (error) setErr(/rate limit/i.test(error.message) ? "Too many requests. Please wait a few minutes and try again." : "Couldn't send the reset email. Check the address and try again.");
       else setSent(true);
       return;
     }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) { setErr("That email and password don't match. Try again or reset your password."); return; }
+    if (error) { setErr(/confirm/i.test(error.message) ? "Please confirm your email first. Check your inbox for the link we sent." : "That email and password don't match. Try again or reset your password."); return; }
     router.replace(next);
     router.refresh();
   }
 
-  if (sent) return <p>Check your email for a link to set a new password.</p>;
+  if (sent) return <p>If there&apos;s an account with that email, we sent a link to set a new password. Check your inbox (and spam folder).</p>;
   return (
     <form onSubmit={onSubmit}>
       <div className="fld"><label htmlFor="email">Email</label><input id="email" name="email" type="email" required autoComplete="email" /></div>

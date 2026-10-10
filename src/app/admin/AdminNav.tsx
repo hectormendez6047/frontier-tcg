@@ -9,6 +9,7 @@ export function AdminNav({ isAdmin, isOwner }: { isAdmin: boolean; isOwner: bool
     ["/admin/products", "Products", true],
     ["/admin/import", "Import / Export", isAdmin],
     ["/admin/rewards", "Rewards", true],
+    ["/admin/customers", "Customers", isAdmin],
     ["/admin/events", "Events", true],
     ["/admin/settings", "Settings", isAdmin],
     ["/admin/team", "Team", isOwner],

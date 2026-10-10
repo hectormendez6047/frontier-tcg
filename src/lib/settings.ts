@@ -24,6 +24,11 @@ export const DEFAULT_SETTINGS: Settings = {
   facebook: "",
   tiktok: "",
   comingSoon: true,
+  siteMode: "coming_soon",
+  maintenanceMessage: "We're making some improvements and will be back shortly. Thanks for your patience.",
+  autoBulk: true,
+  bulkThreshold: 0.99,
+  rewardsLive: false,
   comingSoonMessage:
     "Our online store is almost ready. Soon you'll be able to search our live inventory, check stock and order singles, sealed product and sports cards from Laredo.",
 };

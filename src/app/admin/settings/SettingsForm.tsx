@@ -39,27 +39,41 @@ export function SettingsForm({ initial }: { initial: Settings }) {
       setMsg(r.ok ? { t: "Settings saved. The store uses them now." } : { t: r.error, err: true });
       if (r.ok) router.refresh();
     }}>
-      <div className="panel" style={{ borderColor: s.comingSoon ? "var(--gold)" : undefined }}>
-        <h3>Store visibility</h3>
-        <div className="form">
-          <div className="fld">
-            <label className="check" style={{ font: "inherit", textTransform: "none", letterSpacing: 0, color: "var(--fg)", minHeight: 42 }}>
-              <input type="checkbox" checked={!!s.comingSoon} onChange={(e) => set("comingSoon", e.target.checked)} />
-              <span><b>Coming soon mode</b>: visitors see a coming-soon page. Signed-in staff still see and manage the full store.</span>
+      <div className="panel" style={{ borderColor: s.siteMode !== "live" ? "var(--gold)" : undefined }}>
+        <h3>Store status</h3>
+        <div style={{ display: "grid", gap: 10 }}>
+          {([
+            ["live", "Open", "Everyone can see and shop the store."],
+            ["coming_soon", "Coming soon", "Visitors see a coming-soon page. They can still create accounts."],
+            ["maintenance", "Maintenance", "Temporarily closes the store with a “Be right back” page. Use this if something needs fixing."],
+          ] as const).map(([v, l, d]) => (
+            <label key={v} className="opt">
+              <input type="radio" name="siteMode" value={v} checked={s.siteMode === v} onChange={() => set("siteMode", v)} />
+              <span><b>{l}</b><br /><span className="muted" style={{ fontSize: 14 }}>{d}</span></span>
             </label>
-          </div>
-          {area("comingSoonMessage", "Coming-soon message")}
+          ))}
         </div>
-        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>
-          {s.comingSoon ? "The store is hidden from the public." : "The store is open to the public."} Changes take up to 15 seconds to reach every visitor.
-        </p>
+        <div className="form" style={{ marginTop: 14 }}>
+          {area("comingSoonMessage", "Coming-soon message")}
+          {area("maintenanceMessage", "Maintenance message")}
+        </div>
+        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>Signed-in staff always see the full store. Changes reach every visitor within about 15 seconds.</p>
       </div>
       <div className="panel"><h3>Checkout</h3><div className="form">
         {b("shippingEnabled", "Shipping enabled")}{b("pickupEnabled", "Local pickup enabled")}
         {t("pickupFee", "Pickup processing fee $", 2, "number")}{t("shippingFlat", "Flat shipping rate $", 2, "number")}{t("freeShippingOver", "Free shipping over $ (0 = off)", 2, "number")}
       </div></div>
-      <div className="panel"><h3>Inventory</h3><div className="form">{t("lowStock", "Low-stock warning at", 2, "number")}</div>
-        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>Products at or below this number show “Only X left” and appear in Needs restock.</p></div>
+      <div className="panel"><h3>Inventory</h3><div className="form">
+        {t("lowStock", "Low-stock warning at", 2, "number")}
+        {t("bulkThreshold", "Bulk price: singles at or under $", 2, "number")}
+        {b("autoBulk", "Sort cheap singles into Bulk automatically")}
+      </div>
+        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>
+          Products at or below the low-stock number show “Only X left” and appear in Needs restock.
+          With automatic Bulk on, any single priced at or under the bulk price goes to the Bulk tab when it&apos;s added or its price changes, and moves back to Singles if the price goes up. You can still move a card by hand.
+        </p></div>
+      <div className="panel"><h3>Rewards</h3><div className="form">{b("rewardsLive", "Show Frontier Rewards to customers")}</div>
+        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>While this is off, customers see “Rewards coming soon”. You can still set up rewards and give them out in Admin → Rewards.</p></div>
       <div className="panel"><h3>Homepage</h3><div className="form">
         {t("heroHeadline", "Headline under the logo")}{area("heroCopy", "Intro text")}{t("announcement", "Announcement banner (leave empty to hide)")}
       </div><p className="muted" style={{ fontSize: 14, margin: "12px 0 0" }}>Choose featured products with “Feature on homepage” when editing a product. Rewards rules are on the Rewards page.</p></div>

@@ -47,6 +47,9 @@ const ProductInput = z.object({
   description: z.string().trim().max(5000).optional().nullable().transform((v) => v || null),
   notes: z.string().trim().max(5000).optional().nullable().transform((v) => v || null),
   tags: z.array(z.string().trim().max(40)).max(30).default([]),
+  product_kind: optText, grader: optText, grade: optText, tcgplayer_id: optText,
+  image_url: z.string().trim().max(600).optional().nullable().transform((v) => v || null)
+    .refine((v) => !v || /^https:\/\/[^\s]+$/.test(v), "Photo links must start with https://"),
   status: z.enum(["active", "draft", "archived"]),
   featured: z.boolean().default(false),
   is_demo: z.boolean().default(false),
@@ -75,6 +78,7 @@ export async function saveProduct(raw: ProductPayload): Promise<Result<{ id: str
     price: v.price, sale_price: v.sale_price, compare_at_price: v.compare_at_price, cost: v.cost,
     quantity: v.quantity, reserved_quantity: v.reserved_quantity, location_id: v.location_id ?? null,
     description: v.description, notes: v.notes, tags: v.tags, status: v.status, featured: v.featured, is_demo: v.is_demo,
+    product_kind: v.product_kind, grader: v.grader, grade: v.grade, tcgplayer_id: v.tcgplayer_id, image_url: v.image_url,
   };
 
   if (v.isNew) {
@@ -181,7 +185,7 @@ export async function existingSkus(skus: string[]): Promise<Record<string, { id:
   if (roleErr) return {};
   const supabase = await createClient();
   const out: Record<string, { id: string; name: string; price: number; quantity: number }> = {};
-  const unique = [...new Set(skus.filter(Boolean))].slice(0, 20000);
+  const unique = [...new Set(skus.filter(Boolean))].slice(0, 25000);
   for (let i = 0; i < unique.length; i += 500) {
     const chunk = unique.slice(i, i + 500);
     const { data } = await supabase.from("products").select("id, sku, name, price").in("sku", chunk);
@@ -196,14 +200,14 @@ const ImportRow = z.object({
   data: z.record(z.unknown()),
 });
 
-const IMPORT_FIELDS = new Set(["sku", "name", "product_type", "game", "set_name", "card_number", "rarity", "card_type", "player", "team", "year",
+const IMPORT_FIELDS = new Set(["product_kind", "grader", "grade", "tcgplayer_id", "image_url", "sku", "name", "product_type", "game", "set_name", "card_number", "rarity", "card_type", "player", "team", "year",
   "manufacturer", "rookie", "parallel", "is_insert", "holo", "language", "condition", "price", "sale_price", "compare_at_price", "cost",
   "quantity", "description", "notes", "tags", "status", "featured", "is_demo"]);
 
 export async function commitImport(rows: z.input<typeof ImportRow>[]): Promise<Result<{ created: number; updated: number; failed: string[] }>> {
   const { error: roleErr } = await checkRole("admin");
   if (roleErr) return fail("Only owners and admins can import.");
-  if (!Array.isArray(rows) || rows.length > 5000) return fail("Import up to 5,000 rows at a time.");
+  if (!Array.isArray(rows) || rows.length > 2000) return fail("Send up to 2,000 rows at a time.");
   const supabase = await createClient();
   let created = 0, updated = 0;
   const failed: string[] = [];
@@ -230,8 +234,9 @@ export async function commitImport(rows: z.input<typeof ImportRow>[]): Promise<R
     const { error } = await supabase.from("products").update(clean(r.data)).eq("id", r.id!);
     if (error) failed.push(`${String(r.data.sku ?? r.id)}: ${friendly(error.message)}`); else updated++;
   }
+  const actor = (await supabase.auth.getUser()).data.user;
   await supabase.from("audit_logs").insert({
-    actor_id: (await supabase.auth.getUser()).data.user?.id, action: "imported CSV", entity: "products",
+    actor_id: actor?.id, actor_email: actor?.email, action: "imported CSV", entity: "products",
     entity_name: `${created} new, ${updated} updated`,
   });
   revalidateStore();
@@ -250,6 +255,8 @@ const SettingsInput = z.object({
   aboutText: z.string().max(5000),
   instagram: z.string().max(300), facebook: z.string().max(300), tiktok: z.string().max(300),
   comingSoon: z.boolean(), comingSoonMessage: z.string().max(600),
+  siteMode: z.enum(["live", "coming_soon", "maintenance"]), maintenanceMessage: z.string().max(600),
+  autoBulk: z.boolean(), bulkThreshold: z.coerce.number().min(0).max(100), rewardsLive: z.boolean(),
 }).partial();
 
 export async function saveSettings(raw: Record<string, unknown>): Promise<Result> {
@@ -261,6 +268,7 @@ export async function saveSettings(raw: Record<string, unknown>): Promise<Result
     const u = parsed.data[k];
     if (u && !/^https:\/\//.test(u)) return fail("Social links must start with https://");
   }
+  if (parsed.data.siteMode) parsed.data.comingSoon = parsed.data.siteMode !== "live";
   const supabase = await createClient();
   const { data: cur } = await supabase.from("store_settings").select("data").eq("id", 1).maybeSingle();
   const before = { ...DEFAULT_SETTINGS, ...((cur?.data as object) ?? {}) } as Record<string, unknown>;
@@ -369,16 +377,99 @@ export async function deleteMember(memberId: string): Promise<Result> {
 // ─── Team ────────────────────────────────────────────────────
 
 export async function setRole(email: string, role: "owner" | "admin" | "staff" | "customer"): Promise<Result> {
-  const { viewer, error: roleErr } = await checkRole("owner");
+  const { error: roleErr } = await checkRole("owner");
   if (roleErr) return fail("Only the owner can change roles.");
   if (!["owner", "admin", "staff", "customer"].includes(role)) return fail("Choose a role.");
   const supabase = await createClient();
-  const { data: target } = await supabase.from("profiles").select("id, email").ilike("email", email.trim()).maybeSingle();
-  if (!target) return fail("No account with that email yet. Invite them first in Supabase (Authentication → Users → Invite).");
-  if (target.id === viewer!.id && role !== "owner") return fail("You can't remove your own owner role.");
-  const { error } = await supabase.from("profiles").update({ role }).eq("id", target.id);
-  if (error) return fail(friendly(error.message));
-  await supabase.from("audit_logs").insert({ actor_id: viewer!.id, actor_email: viewer!.email, action: "changed", entity: "team", entity_name: target.email, field: "role", new_value: role });
+  const { error } = await supabase.rpc("admin_set_role", { p_email: email.trim(), p_role: role });
+  if (error) {
+    if (/No account/.test(error.message)) return fail("No account with that email yet. Ask them to create an account at /signup first.");
+    if (/own owner role/.test(error.message)) return fail("You can't remove your own owner role.");
+    return fail(friendly(error.message));
+  }
   revalidatePath("/admin/team");
+  return { ok: true };
+}
+
+// ─── Rewards catalog ─────────────────────────────────────────
+
+const CatalogInput = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().trim().min(1, "Give the reward a name.").max(120),
+  description: z.string().trim().max(500).optional().transform((v) => v || null),
+  kind: z.enum(["amount_off", "percent_off", "free_item"]),
+  value: z.union([z.literal(""), z.coerce.number().min(0).max(100000)]).optional().transform((v) => (v === "" || v == null ? null : v)),
+  item: z.string().trim().max(200).optional().transform((v) => v || null),
+  points_cost: z.coerce.number().int().min(0).max(1000000).default(0),
+  max_issued: z.union([z.literal(""), z.coerce.number().int().min(1).max(1000000)]).optional().transform((v) => (v === "" || v == null ? null : v)),
+  expires_days: z.union([z.literal(""), z.coerce.number().int().min(1).max(3650)]).optional().transform((v) => (v === "" || v == null ? null : v)),
+  active: z.boolean().default(true),
+});
+
+export async function saveCatalogItem(raw: Record<string, unknown>): Promise<Result> {
+  const { error: roleErr } = await checkRole("admin");
+  if (roleErr) return fail("Only owners and admins can set up rewards.");
+  const parsed = CatalogInput.safeParse(raw);
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Check the reward details.");
+  const { id, ...row } = parsed.data;
+  if (row.kind !== "free_item" && !row.value) return fail(row.kind === "percent_off" ? "Enter the percent off." : "Enter the dollar amount off.");
+  if (row.kind === "percent_off" && (row.value ?? 0) > 100) return fail("Percent off can't be more than 100.");
+  if (row.kind === "free_item" && !row.item) return fail("Describe the free item, for example “Pitch Black sleeved booster pack”.");
+  const supabase = await createClient();
+  const { error } = id
+    ? await supabase.from("rewards_catalog").update({ ...row, updated_at: new Date().toISOString() }).eq("id", id)
+    : await supabase.from("rewards_catalog").insert(row);
+  if (error) return fail(friendly(error.message));
+  revalidatePath("/admin/rewards", "layout");
+  return { ok: true };
+}
+
+function rewardsError(msg: string) {
+  const known = ["Not enough points", "turned off", "No reward with that code", "already used", "was cancelled", "expired on",
+    "have been given out", "Only unused rewards", "Reward not found"];
+  return known.some((k) => msg.includes(k)) ? msg.split("\n")[0] : friendly(msg);
+}
+
+export async function issueReward(rewardId: string, target: { memberIds?: string[]; all?: boolean }, note?: string): Promise<Result<{ count: number }>> {
+  const { error: roleErr } = await checkRole("staff");
+  if (roleErr) return fail(roleErr);
+  if (!z.string().uuid().safeParse(rewardId).success) return fail("Choose a reward.");
+  const supabase = await createClient();
+  let ids = (target.memberIds ?? []).filter((x) => z.string().uuid().safeParse(x).success);
+  if (target.all) {
+    const { data } = await supabase.from("rewards_members").select("id").order("created_at").limit(5000);
+    ids = (data ?? []).map((r: { id: string }) => r.id);
+  }
+  if (!ids.length) return fail("Choose at least one member.");
+  const { data, error } = await supabase.rpc("rewards_issue", { p_reward: rewardId, p_members: ids, p_note: note?.slice(0, 200) || null });
+  if (error) return fail(rewardsError(error.message));
+  revalidatePath("/admin/rewards", "layout");
+  return { ok: true, data: { count: Number(data) || 0 } };
+}
+
+export async function redeemRewardCode(code: string): Promise<Result<{ name: string; member: string }>> {
+  const { error: roleErr } = await checkRole("staff");
+  if (roleErr) return fail(roleErr);
+  const clean = code.trim().toUpperCase();
+  if (!/^FT-[0-9A-F]{8}$/.test(clean)) return fail("Reward codes look like FT-1A2B3C4D.");
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("rewards_redeem", { p_code: clean });
+  if (error) return fail(rewardsError(error.message));
+  const row = data as { reward_id: string; member_id: string };
+  const [{ data: r }, { data: m }] = await Promise.all([
+    supabase.from("rewards_catalog").select("name").eq("id", row.reward_id).maybeSingle(),
+    supabase.from("rewards_members").select("name").eq("id", row.member_id).maybeSingle(),
+  ]);
+  revalidatePath("/admin/rewards", "layout");
+  return { ok: true, data: { name: r?.name ?? "Reward", member: m?.name ?? "" } };
+}
+
+export async function voidReward(id: string): Promise<Result> {
+  const { error: roleErr } = await checkRole("staff");
+  if (roleErr) return fail(roleErr);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("rewards_void", { p_id: id });
+  if (error) return fail(rewardsError(error.message));
+  revalidatePath("/admin/rewards", "layout");
   return { ok: true };
 }

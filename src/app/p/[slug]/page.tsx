@@ -9,6 +9,9 @@ import { Gallery } from "@/components/Gallery";
 import { Price, Stock } from "@/components/Price";
 import { AddToCart } from "@/components/AddToCart";
 import { ProductGrid } from "@/components/ProductCard";
+import { SaveButton } from "@/components/SaveButton";
+import { createClient } from "@/lib/supabase/server";
+import { KIND_LABEL } from "@/lib/constants";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -18,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!r) return { title: "Product not found" };
   const p = r.product;
   const desc = p.description || `${p.name}${metaLine(p) ? " — " + metaLine(p) : ""}. In stock at Frontier TCG, Laredo, Texas.`;
-  const img = imageUrl(r.images[0]?.path);
+  const img = imageUrl(r.images[0]?.path) ?? r.product.image_url ?? null;
   return {
     title: `${p.name}${p.set_name ? " · " + p.set_name : ""}`,
     description: desc.slice(0, 160),
@@ -32,13 +35,15 @@ export default async function ProductPage({ params }: Props) {
   const [r, settings] = await Promise.all([getProductBySlug(slug), getSettings()]);
   if (!r) notFound();
   const { product: p, images } = r;
-  const related = await getRelated(p);
+  const supabase = await createClient();
+  const [related, { data: { user } }] = await Promise.all([getRelated(p), supabase.auth.getUser()]);
+  const { data: fav } = user ? await supabase.from("favorites").select("product_id").eq("product_id", p.id).maybeSingle() : { data: null };
   const lowAt = Number(settings.lowStock) || 3;
   const sp = isSports(p);
   const rows: [string, string | null | undefined][] = [
     ["Game", p.game], ["Type", PRODUCT_TYPES[p.product_type]], ["Set", p.set_name], ["Card number", p.card_number ? "#" + p.card_number : ""],
     ["Rarity", p.rarity], ["Player", p.player], ["Team", p.team], ["Year", p.year], ["Manufacturer", p.manufacturer],
-    ["Rookie", p.rookie ? "Yes" : ""], ["Parallel", p.parallel], ["Insert", p.is_insert ? "Yes" : ""], ["Finish", p.holo ? "Holo" : ""],
+    ["Rookie", p.rookie ? "Yes" : ""], ["Graded", p.grader ? `${p.grader} ${p.grade ?? ""}`.trim() : ""], ["Product", p.product_kind ? KIND_LABEL[p.product_kind] ?? "" : ""], ["Parallel", p.parallel], ["Insert", p.is_insert ? "Yes" : ""], ["Finish", p.holo ? "Holo" : ""],
     ["Language", p.language], ["Condition", p.condition], ["SKU", p.sku],
   ];
   const back: [string, string] = p.product_type === "bulk" ? ["/bulk", "Bulk"] : p.product_type === "sealed" ? ["/shop/sealed", "Sealed"]
@@ -50,7 +55,7 @@ export default async function ProductPage({ params }: Props) {
     name: p.name,
     sku: p.sku,
     description: p.description || metaLine(p),
-    image: images.map((i) => imageUrl(i.path)),
+    image: images.length ? images.map((i) => imageUrl(i.path)) : p.image_url ? [p.image_url] : [],
     brand: p.manufacturer || p.game || "Frontier TCG",
     offers: {
       "@type": "Offer",
@@ -74,7 +79,7 @@ export default async function ProductPage({ params }: Props) {
           <div className="muted mono" style={{ fontSize: 14 }}>{metaLine(p)}</div>
           <div><Price p={p} big /></div>
           <div style={{ marginTop: 12 }}><Stock available={p.available_quantity} lowAt={lowAt} /></div>
-          <div className="buy"><AddToCart id={p.id} name={p.name} available={p.available_quantity} /></div>
+          <div className="buy"><AddToCart id={p.id} name={p.name} available={p.available_quantity} /><SaveButton productId={p.id} initial={!!fav} path={`/p/${p.slug}`} /></div>
           {p.description && <div className="prose" style={{ marginTop: 24 }}><p>{p.description}</p></div>}
           <dl className="spec">
             {rows.filter(([, v]) => v).map(([k, v]) => (<div key={k} style={{ display: "contents" }}><dt>{k}</dt><dd>{v}</dd></div>))}

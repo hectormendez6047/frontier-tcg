@@ -13,9 +13,10 @@ export async function Header() {
   const settings = await getSettings();
   return (
     <>
-    {isStaff && settings.comingSoon && (
+    {isStaff && settings.siteMode !== "live" && (
       <div className="demo-bar">
-        <b>Coming soon mode is on.</b> The public sees a coming-soon page. You&apos;re seeing the real store because you&apos;re signed in as staff.{" "}
+        <b>{settings.siteMode === "maintenance" ? "Maintenance mode is on." : "Coming soon mode is on."}</b>{" "}
+        The public sees a {settings.siteMode === "maintenance" ? "“Be right back”" : "coming-soon"} page. You&apos;re seeing the real store because you&apos;re signed in as staff.{" "}
         <Link href="/admin/settings" style={{ textDecoration: "underline" }}>Change in Settings</Link>
       </div>
     )}

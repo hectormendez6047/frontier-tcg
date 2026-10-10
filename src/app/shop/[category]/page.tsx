@@ -20,7 +20,7 @@ export default async function Category({ params, searchParams }: Props) {
   return (
     <div className="wrap">
       <div className="page-head"><h1>{c.title}</h1><p>{c.blurb}</p></div>
-      <Listing sp={sp} category={category} basePath={`/shop/${category}`} mode="grid" defaultInStock={false} defaultSort="new" />
+      <Listing sp={sp} category={category} scope={c.scope} fixedGame={c.game} basePath={`/shop/${category}`} mode="grid" defaultInStock={false} defaultSort="new" />
     </div>
   );
 }

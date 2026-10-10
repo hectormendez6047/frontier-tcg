@@ -1,13 +1,17 @@
 import { cache } from "react";
 import { createClient } from "./supabase/server";
 import { DEFAULT_SETTINGS } from "./settings";
-import type { Product, ProductImage, Settings, StoreEvent } from "./types";
+import type { Facets, PokemonSet, Product, ProductImage, Settings, StoreEvent } from "./types";
 import { PAGE_SIZE } from "./constants";
 
 export const getSettings = cache(async (): Promise<Settings> => {
   const supabase = await createClient();
   const { data } = await supabase.from("store_settings").select("data").eq("id", 1).maybeSingle();
-  return { ...DEFAULT_SETTINGS, ...((data?.data as Partial<Settings>) ?? {}) };
+  const raw = (data?.data as Partial<Settings>) ?? {};
+  const merged = { ...DEFAULT_SETTINGS, ...raw };
+  if (!raw.siteMode) merged.siteMode = raw.comingSoon === false ? "live" : "coming_soon";
+  merged.comingSoon = merged.siteMode !== "live";
+  return merged;
 });
 
 export type SearchParams = {
@@ -19,13 +23,25 @@ export type SearchParams = {
   rarity?: string;
   min?: string;
   max?: string;
+  set?: string;
+  player?: string;
+  team?: string;
+  year?: string;
+  brand?: string;
+  kind?: string;
   stock?: string;   // "1" = in stock only
   rookie?: string;  // "1"
+  insert?: string;  // "1"
+  graded?: string;  // "1"
+  holo?: string;    // "1"
   sort?: string;
   page?: string;
 };
 
-export async function searchProducts(sp: SearchParams, opts: { pageSize?: number; defaultInStock?: boolean } = {}) {
+export const FILTER_KEYS = ["q", "game", "type", "condition", "rarity", "set", "player", "team", "year", "brand", "kind",
+  "min", "max", "stock", "rookie", "insert", "graded", "holo", "sort", "page"] as const;
+
+export async function searchProducts(sp: SearchParams & { category?: string }, opts: { pageSize?: number; defaultInStock?: boolean; category?: string } = {}) {
   const supabase = await createClient();
   const pageSize = opts.pageSize ?? PAGE_SIZE;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
@@ -33,15 +49,24 @@ export async function searchProducts(sp: SearchParams, opts: { pageSize?: number
   const inStock = sp.stock === undefined ? !!opts.defaultInStock : sp.stock === "1";
   const { data, error } = await supabase.rpc("search_products", {
     q: (sp.q ?? "").slice(0, 120),
-    p_category: sp.category || null,
+    p_category: opts.category || sp.category || null,
     p_game: sp.game || null,
     p_type: sp.type || null,
     p_condition: sp.condition || null,
     p_rarity: sp.rarity || null,
+    p_set: sp.set || null,
+    p_player: sp.player?.trim() || null,
+    p_team: sp.team || null,
+    p_year: sp.year || null,
+    p_brand: sp.brand || null,
+    p_kind: sp.kind || null,
     p_min: num(sp.min),
     p_max: num(sp.max),
     p_in_stock: inStock,
     p_rookie: sp.rookie === "1",
+    p_insert: sp.insert === "1",
+    p_graded: sp.graded === "1",
+    p_holo: sp.holo === "1",
     p_sort: sp.sort || "relevance",
     p_limit: pageSize,
     p_offset: (page - 1) * pageSize,
@@ -65,7 +90,29 @@ export const getFacets = cache(async () => {
 });
 
 const PUBLIC_COLS =
-  "id, sku, slug, name, product_type, game, set_name, card_number, rarity, card_type, player, team, year, manufacturer, rookie, parallel, is_insert, holo, language, condition, price, sale_price, compare_at_price, available_quantity, description, tags, featured, is_demo, created_at, image_path";
+  "id, sku, slug, name, product_type, game, set_name, card_number, rarity, card_type, player, team, year, manufacturer, rookie, parallel, is_insert, holo, language, condition, price, sale_price, compare_at_price, available_quantity, description, tags, featured, is_demo, created_at, image_path, image_url, product_kind, grader, grade";
+
+export const getScopeFacets = cache(async (category: string | null, game: string | null): Promise<Facets> => {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("scope_facets", { p_category: category, p_game: game });
+  const empty: Facets = { games: [], sets: [], rarities: [], teams: [], players: [], years: [], brands: [], kinds: [], total: 0 };
+  return { ...empty, ...((data as Partial<Facets>) ?? {}) };
+});
+
+/** Every Pokémon set, newest first, for the Set filter and the product form. */
+export const getPokemonSets = cache(async (): Promise<PokemonSet[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("sets").select("name, code, series, release_date").eq("game", "Pokémon")
+    .order("release_date", { ascending: false }).limit(500);
+  return (data ?? []) as PokemonSet[];
+});
+
+export async function getNewSealed(limit = 8) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("products_public").select(PUBLIC_COLS).eq("product_type", "sealed").gt("available_quantity", 0)
+    .order("created_at", { ascending: false }).limit(limit);
+  return (data ?? []) as unknown as Product[];
+}
 
 export async function getProductBySlug(slug: string) {
   const supabase = await createClient();
@@ -92,7 +139,7 @@ export async function getFeatured(limit = 8) {
 
 export async function getNewArrivals(limit = 8) {
   const supabase = await createClient();
-  const { data } = await supabase.from("products_public").select(PUBLIC_COLS).gt("available_quantity", 0)
+  const { data } = await supabase.from("products_public").select(PUBLIC_COLS).gt("available_quantity", 0).neq("product_type", "bulk")
     .order("created_at", { ascending: false }).limit(limit);
   return (data ?? []) as unknown as Product[];
 }

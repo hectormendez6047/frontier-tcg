@@ -1,33 +1,39 @@
 import Link from "next/link";
-import { getViewer, hasRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { getSettings } from "@/lib/data";
 
 export const metadata = { title: "My account", robots: { index: false } };
 
-export default async function Account() {
-  const viewer = await getViewer();
+export default async function AccountHome() {
+  const supabase = await createClient();
+  const [st, { count: saved }, { count: addresses }] = await Promise.all([
+    getSettings(),
+    supabase.from("favorites").select("product_id", { count: "exact", head: true }),
+    supabase.from("addresses").select("id", { count: "exact", head: true }),
+  ]);
+  const tiles: [string, string, string][] = [
+    ["/account/orders", "Orders", "Online ordering opens soon"],
+    ["/account/saved", "Saved items", `${saved ?? 0} saved`],
+    ["/account/addresses", "Addresses", `${addresses ?? 0} saved`],
+  ];
   return (
-    <div className="wrap">
-      <div className="page-head"><h1>My account</h1></div>
-      <div style={{ padding: "24px 0 64px", maxWidth: 640 }}>
-        <div className="empty" style={{ textAlign: "left" }}>
-          {viewer ? (
-            <>
-              <h3>Signed in as {viewer.email}</h3>
-              <p>Order history, saved cards, addresses and rewards will appear here when customer accounts launch.</p>
-              <p style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                {hasRole(viewer.role, "staff") && <Link className="btn gold" href="/admin">Open store admin</Link>}
-                <a className="btn" href="/auth/signout">Sign out</a>
-              </p>
-            </>
-          ) : (
-            <>
-              <h3>Customer accounts are coming soon</h3>
-              <p>Order history, saved cards, addresses and Frontier Rewards will live here once customer sign-in launches.</p>
-              <p><Link className="btn" href="/login">Staff sign in</Link></p>
-            </>
-          )}
-        </div>
+    <>
+      <div className="kpis">
+        {tiles.map(([h, k, v]) => (
+          <Link key={h} href={h} className="kpi" style={{ textDecoration: "none" }}><div className="k">{k}</div><div style={{ marginTop: 10, fontSize: 17 }}>{v}</div></Link>
+        ))}
       </div>
-    </div>
+      <div className="panel">
+        <h3>Frontier Rewards</h3>
+        {st.rewardsLive
+          ? <p className="muted" style={{ margin: 0 }}>Ask staff for your points balance at the store. Online balances are on the way.</p>
+          : <p className="muted" style={{ margin: 0 }}>Rewards are coming soon. Your account is ready, so you&apos;ll be set up the day they launch.</p>}
+      </div>
+      <div className="panel">
+        <h3>Looking for something?</h3>
+        <p className="muted" style={{ margin: "0 0 14px" }}>Tap the ♡ Save button on any product to keep a list of cards you&apos;re hunting for.</p>
+        <Link className="btn gold" href="/finder">Open the Card Finder</Link>
+      </div>
+    </>
   );
 }

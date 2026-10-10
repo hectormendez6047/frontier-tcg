@@ -17,6 +17,8 @@ You need three free accounts: **GitHub** (holds the code), **Supabase** (databas
 3. Open the file `supabase/migrations/0001_init.sql` from this project, copy everything in it, paste it into the editor and click **Run**. You should see “Success. No rows returned”.
 4. Optional, for testing: make another new query, paste in `supabase/seed.sql` and click **Run**. This adds 13 demo products marked “Demo” and one example event. You can delete them later from the admin.
 
+**Update 2:** also run `supabase/migrations/0002_accounts_filters_rewards.sql` the same way. It adds customer accounts, every Pokémon set, the category filters, automatic Bulk sorting and the rewards catalog. It's safe to run more than once.
+
 ### 2. Create your owner login
 
 1. In Supabase, go to **Authentication → Users → Add user → Create new user**.
@@ -64,6 +66,20 @@ This makes password-reset emails link back to your site.
 ### 6. Sign in and start managing the store
 
 Go to `your-site/login`, sign in with the owner login from step 2, and you'll land in **Store admin**. You can also reach it from the list icon in the header whenever you're signed in.
+
+### 6b. Make account emails work (before launch)
+
+Supabase's built-in email sender only delivers to your own team's addresses and is heavily rate-limited, so customers won't get confirmation or password-reset emails until you connect a real sender:
+
+1. Make a free account at [resend.com](https://resend.com) and add the domain `frontiertcgshop.com`. Resend shows a few DNS records. Add them in Cloudflare under **DNS → Records**, all set to **DNS only**.
+2. In Resend, create an **API key**.
+3. In Supabase, go to **Authentication → Emails → SMTP Settings → Enable custom SMTP**:
+   - **Host:** `smtp.resend.com`
+   - **Port:** `465`
+   - **Username:** `resend`
+   - **Password:** your Resend API key
+   - **Sender email:** `orders@frontiertcgshop.com`
+   - **Sender name:** `Frontier TCG`
 
 ### 7. Connect frontiertcgshop.com (later)
 

@@ -5,7 +5,7 @@ import { useCart } from "@/components/CartProvider";
 import { useCartProducts } from "@/components/useCartProducts";
 import { QtyStepper } from "@/components/AddToCart";
 import { EmptyState } from "@/components/EmptyState";
-import { effectivePrice, imageUrl, metaLine, money } from "@/lib/format";
+import { effectivePrice, productPhoto, metaLine, money } from "@/lib/format";
 
 export default function CartPage() {
   const { setQty, remove } = useCart();
@@ -30,11 +30,11 @@ export default function CartPage() {
       <div className="cart">
         <div className="rows">
           {lines.map(({ p, q, a }) => {
-            const src = imageUrl(p.image_path);
+            const photo = productPhoto(p);
             return (
               <div className="lrow" key={p.id}>
                 <Link className="th" href={`/p/${p.slug}`} tabIndex={-1} aria-hidden="true">
-                  {src ? <Image src={src} alt="" fill sizes="52px" style={{ objectFit: "cover" }} /> : (p.game || "").slice(0, 3).toUpperCase()}
+                  {photo ? <Image src={photo.src} alt="" fill sizes="52px" style={{ objectFit: "cover" }} unoptimized={photo.external} /> : (p.game || "").slice(0, 3).toUpperCase()}
                 </Link>
                 <div className="info">
                   <Link href={`/p/${p.slug}`}>{p.name}</Link>

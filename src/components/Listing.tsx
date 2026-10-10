@@ -1,23 +1,27 @@
 import { Suspense } from "react";
-import { getFacets, getSettings, searchProducts, type SearchParams } from "@/lib/data";
+import { FILTER_KEYS, getPokemonSets, getScopeFacets, getSettings, searchProducts, type SearchParams } from "@/lib/data";
+import type { FilterScope } from "@/lib/constants";
 import { FilterPanel, SearchBar } from "./Filters";
 import { Results } from "./Results";
 
 /** Shared layout for Shop, category pages, Card Finder and Bulk. All filtering happens in the database. */
-export async function Listing({ sp, category, basePath, mode, searchPlaceholder, showType, defaultInStock, defaultSort, autoFocus }: {
-  sp: SearchParams; category?: string; basePath: string; mode: "grid" | "list";
-  searchPlaceholder?: string; showType?: boolean; defaultInStock: boolean; defaultSort?: string; autoFocus?: boolean;
+export async function Listing({ sp, category, scope, fixedGame, basePath, mode, searchPlaceholder, defaultInStock, defaultSort, autoFocus }: {
+  sp: SearchParams; category?: string; scope: FilterScope; fixedGame?: string; basePath: string; mode: "grid" | "list";
+  searchPlaceholder?: string; defaultInStock: boolean; defaultSort?: string; autoFocus?: boolean;
 }) {
-  const [settings, facets, res] = await Promise.all([
+  const game = fixedGame ?? sp.game ?? null;
+  const needSets = scope === "pokemon" || game === "Pokémon";
+  const [settings, facets, pokemonSets, res] = await Promise.all([
     getSettings(),
-    getFacets(),
-    searchProducts({ ...sp, category, sort: sp.sort || defaultSort }, { defaultInStock }),
+    getScopeFacets(category ?? null, game),
+    needSets ? getPokemonSets() : Promise.resolve([]),
+    searchProducts({ ...sp, game: game ?? undefined, sort: sp.sort || defaultSort }, { defaultInStock, category }),
   ]);
   const params = sp as Record<string, string | undefined>;
   return (
     <div className="layout">
       <Suspense>
-        <FilterPanel games={facets.games ?? []} rarities={facets.rarities ?? []} showType={showType} defaultInStock={defaultInStock} />
+        <FilterPanel scope={scope} facets={facets} pokemonSets={pokemonSets} defaultInStock={defaultInStock} />
       </Suspense>
       <div style={{ minWidth: 0 }}>
         {searchPlaceholder && <Suspense><SearchBar placeholder={searchPlaceholder} autoFocus={autoFocus} /></Suspense>}
@@ -30,7 +34,7 @@ export async function Listing({ sp, category, basePath, mode, searchPlaceholder,
 
 export function pickParams(raw: Record<string, string | string[] | undefined>): SearchParams {
   const out: Record<string, string> = {};
-  for (const k of ["q", "game", "type", "condition", "rarity", "min", "max", "stock", "rookie", "sort", "page"]) {
+  for (const k of FILTER_KEYS) {
     const v = raw[k];
     if (typeof v === "string" && v.length <= 120) out[k] = v;
   }

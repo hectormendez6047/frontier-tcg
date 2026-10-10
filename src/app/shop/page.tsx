@@ -8,7 +8,7 @@ export default async function Shop({ searchParams }: { searchParams: Promise<Rec
   return (
     <div className="wrap">
       <div className="page-head"><h1>Shop all</h1><p>Singles, sealed product, sports cards and supplies.</p></div>
-      <Listing sp={sp} basePath="/shop" mode="grid" showType defaultInStock={false} defaultSort="new" />
+      <Listing sp={sp} scope="all" basePath="/shop" mode="grid" defaultInStock={false} defaultSort="new" />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { money } from "@/lib/format";
 import { rewardExplainer } from "@/lib/settings";
 import { getViewer, hasRole } from "@/lib/auth";
 import { AddMemberForm, MemberSearch, ProgramForm } from "./RewardsForms";
+import { CodeLookup } from "./CodeLookup";
 
 export const metadata = { title: "Rewards" };
 
@@ -31,6 +32,12 @@ export default async function RewardsAdmin({ searchParams }: { searchParams: Pro
         <div className="kpi"><div className="k">Ready to redeem</div><div className="v">{ready}</div><div className="s">at {th}+ points{term ? " (in this search)" : ""}</div></div>
       </div>
 
+      {!st.rewardsLive && (
+        <div className="notice" style={{ marginBottom: 16 }}>
+          Rewards are hidden from customers right now (they see “coming soon”). You can still add members and give rewards here. Turn them on in Settings when you&apos;re ready.
+        </div>
+      )}
+      <CodeLookup />
       <AddMemberForm />
       <MemberSearch initial={q} />
 
@@ -62,7 +69,7 @@ export default async function RewardsAdmin({ searchParams }: { searchParams: Pro
       )}
 
       <div className="panel" style={{ marginTop: 24 }}>
-        <h3>How Frontier Rewards works</h3>
+        <h3>Points rules</h3>
         <p style={{ margin: "0 0 18px", fontSize: 15.5, color: "#d6d1c6", maxWidth: "64ch" }}>{rewardExplainer(st)}</p>
         {viewer && hasRole(viewer.role, "admin")
           ? <ProgramForm pointsPerDollar={st.pointsPerDollar} rewardThreshold={st.rewardThreshold} rewardAmount={st.rewardAmount} />

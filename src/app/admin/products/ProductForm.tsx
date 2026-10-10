@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { saveProduct, bulkUpdate, type ProductPayload } from "../actions";
 import { createClient } from "@/lib/supabase/client";
-import { CONDITIONS, GAMES, PRODUCT_TYPES, SPORTS } from "@/lib/constants";
+import { ACCESSORY_KINDS, CONDITIONS, GAMES, GRADERS, PRODUCT_TYPES, SEALED_KINDS, SPORTS } from "@/lib/constants";
 import { imageUrl } from "@/lib/format";
 import type { AdminProduct } from "@/lib/types";
 
@@ -24,8 +24,8 @@ async function toWebp(file: File): Promise<Blob> {
   return blob ?? file;
 }
 
-export function ProductForm({ initial, images: initialImages, locations, isAdmin }: {
-  initial: AdminProduct | null; images: Img[]; locations: Loc[]; isAdmin: boolean;
+export function ProductForm({ initial, images: initialImages, locations, isAdmin, pokemonSets = [], bulkThreshold = 0.99, autoBulk = true }: {
+  initial: AdminProduct | null; images: Img[]; locations: Loc[]; isAdmin: boolean; pokemonSets?: string[]; bulkThreshold?: number; autoBulk?: boolean;
 }) {
   const router = useRouter();
   const isNew = !initial;
@@ -90,6 +90,7 @@ export function ProductForm({ initial, images: initialImages, locations, isAdmin
       tags: str("tags").split(",").map((t) => t.trim()).filter(Boolean),
       status: str("status"), featured: !!d.featured, is_demo: !!d.is_demo,
       images: images.map((i) => ({ path: i.path, alt: i.alt ?? null })),
+      product_kind: str("product_kind"), grader: str("grader"), grade: str("grade"), tcgplayer_id: str("tcgplayer_id"), image_url: str("image_url"),
     };
     const r = await saveProduct(payload);
     setSaving(false);
@@ -185,7 +186,16 @@ export function ProductForm({ initial, images: initialImages, locations, isAdmin
           {select("product_type", "Product type", 3, Object.entries(PRODUCT_TYPES), false)}
           {select("game", "Game / sport", 3, GAMES.map((g) => [g, g]))}
           {select("condition", "Condition", 3, CONDITIONS.map((c) => [c, c]))}
+          {d.product_type === "sealed" && select("product_kind", "Sealed product", 3, SEALED_KINDS)}
+          {d.product_type === "accessory" && select("product_kind", "Accessory", 3, ACCESSORY_KINDS)}
+          {(d.product_type === "single" || d.product_type === "sports" || d.product_type === "collectible") && (<>
+            {select("grader", "Graded by (if slabbed)", 2, GRADERS.map((g) => [g, g]))}
+            {str("grader") && txt("grade", "Grade", 1, { placeholder: "10" })}
+          </>)}
         </div>
+        {autoBulk && (d.product_type === "single" || d.product_type === "bulk") && (
+          <p className="muted" style={{ fontSize: 13.5, margin: "10px 0 0" }}>Singles priced ${Number(bulkThreshold).toFixed(2)} or less go to Bulk automatically when you save.</p>
+        )}
         {sports ? (<>
           <H>Sports card details</H>
           <div className="form">
@@ -195,7 +205,9 @@ export function ProductForm({ initial, images: initialImages, locations, isAdmin
         </>) : d.product_type !== "accessory" && (<>
           <H>Card and set details</H>
           <div className="form">
-            {txt("set_name", "Set", 4)}{txt("card_number", "Card number", 2)}{txt("rarity", "Rarity", 3)}{txt("language", "Language", 3)}{check("holo", "Holo / foil", 3)}
+            <div className="fld s4"><label htmlFor="e-set_name">Set</label>
+              <input id="e-set_name" list="set-list" value={str("set_name")} onChange={(e) => set("set_name", e.target.value)} placeholder={str("game") === "Pokémon" ? "Start typing, e.g. Pitch Black" : ""} />
+              <datalist id="set-list">{(str("game") === "Pokémon" ? pokemonSets : []).map((s) => <option key={s} value={s} />)}</datalist></div>{txt("card_number", "Card number", 2)}{txt("rarity", "Rarity", 3)}{txt("language", "Language", 3)}{check("holo", "Holo / foil", 3)}
           </div>
         </>)}
 
@@ -215,6 +227,8 @@ export function ProductForm({ initial, images: initialImages, locations, isAdmin
           <div className="fld"><label htmlFor="e-description">Description (shown to customers)</label><textarea id="e-description" value={str("description")} onChange={(e) => set("description", e.target.value)} /></div>
           <div className="fld"><label htmlFor="e-notes">Internal notes (staff only)</label><textarea id="e-notes" value={str("notes")} onChange={(e) => set("notes", e.target.value)} style={{ minHeight: 60 }} /></div>
           {txt("tags", "Tags, separated by commas", 6)}
+          {txt("image_url", "Photo link (used when no photo is uploaded)", 4, { placeholder: "https://…" })}
+          {txt("tcgplayer_id", "TCGplayer ID", 2)}
           {select("status", "Status", 3, [["active", "Active (visible)"], ["draft", "Draft (hidden)"], ["archived", "Archived (hidden)"]], false)}
           {check("featured", "Feature on homepage", 3)}
           {check("is_demo", "Demo product (sample data)", 6)}

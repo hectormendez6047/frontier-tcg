@@ -14,9 +14,9 @@ export default async function Finder({ searchParams }: { searchParams: Promise<R
       <div className="page-head">
         <div className="eyebrow">Card Finder</div>
         <h1>Find a card</h1>
-        <p>Search by card name, set, card number, player or team. Stock is live.</p>
+        <p>Every card and product we stock, in one place. Search by name, set, card number, player or team, then narrow it down by game. Stock is live.</p>
       </div>
-      <Listing sp={sp} basePath="/finder" mode="list" showType defaultInStock searchPlaceholder="Pikachu, 125/198, Mahomes…" autoFocus={!sp.q} />
+      <Listing sp={sp} scope="all" basePath="/finder" mode="list" defaultInStock searchPlaceholder="Pikachu, 125/198, Mahomes…" autoFocus={!sp.q} />
     </div>
   );
 }

@@ -12,11 +12,22 @@ export default async function Member({ params }: { params: Promise<{ id: string 
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const supabase = await createClient();
-  const [st, viewer, { data: m }, { data: tx }] = await Promise.all([
+  const [st, viewer, { data: m }, { data: tx }, { data: cat }, { data: held }] = await Promise.all([
     getSettings(), getViewer(),
     supabase.from("rewards_members").select("*").eq("id", id).maybeSingle(),
     supabase.from("rewards_transactions").select("id, kind, amount, points, note, created_at").eq("member_id", id).order("created_at", { ascending: false }).limit(100),
+    supabase.from("rewards_catalog").select("id, name, kind, value, item, points_cost, max_issued, issued_count").eq("active", true).order("created_at"),
+    supabase.from("member_rewards").select("id, code, status, issued_at, expires_at, redeemed_at, reward_id").eq("member_id", id).order("issued_at", { ascending: false }).limit(100),
   ]);
+  type Cat = { id: string; name: string; kind: string; value: number | null; item: string | null; points_cost: number; max_issued: number | null; issued_count: number };
+  const label = (c: Pick<Cat, "kind" | "value" | "item">) => c.kind === "amount_off" ? `${money(c.value)} off` : c.kind === "percent_off" ? `${Number(c.value)}% off` : `Free: ${c.item}`;
+  const catalog = ((cat ?? []) as Cat[]).map((c) => ({ id: c.id, name: c.name, label: label(c), points_cost: c.points_cost, left: c.max_issued != null ? Math.max(c.max_issued - c.issued_count, 0) : null }));
+  const byId = Object.fromEntries(((cat ?? []) as Cat[]).map((c) => [c.id, c]));
+  const { data: allCat } = await supabase.from("rewards_catalog").select("id, name, kind, value, item");
+  const anyById = Object.fromEntries(((allCat ?? []) as Cat[]).map((c) => [c.id, c]));
+  void byId;
+  const heldList = ((held ?? []) as { id: string; code: string; status: string; issued_at: string; expires_at: string | null; redeemed_at: string | null; reward_id: string }[])
+    .map((h) => ({ ...h, name: anyById[h.reward_id]?.name ?? "Reward", label: anyById[h.reward_id] ? label(anyById[h.reward_id]) : "" }));
   if (!m) notFound();
   const th = Number(st.rewardThreshold) || 100;
   return (
@@ -38,7 +49,7 @@ export default async function Member({ params }: { params: Promise<{ id: string 
           </div>
         </div>
       </div>
-      <MemberActions memberId={m.id} name={m.name} points={m.points} threshold={th} rewardAmount={Number(st.rewardAmount)}
+      <MemberActions memberId={m.id} name={m.name} points={m.points} catalog={catalog} held={heldList}
         pointsPerDollar={Number(st.pointsPerDollar)} canDelete={!!viewer && hasRole(viewer.role, "admin")} />
       <div className="panel" style={{ marginTop: 20 }}>
         <h3>History</h3>
@@ -48,7 +59,7 @@ export default async function Member({ params }: { params: Promise<{ id: string 
               <li key={t.id}>
                 <time>{new Date(t.created_at).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" })}</time>
                 <span style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                  <span>{t.kind === "purchase" ? `Purchase of ${money(t.amount)}` : t.kind === "redeem" ? `Redeemed ${money(t.amount)} off` : t.note || "Adjustment"}</span>
+                  <span>{t.kind === "purchase" ? `Purchase of ${money(t.amount)}` : t.kind === "redeem" ? `Redeemed ${money(t.amount)} off` : t.kind === "reward" ? `Reward: ${t.note ?? ""}` : t.note || "Adjustment"}</span>
                   <b className="mono" style={{ color: t.points >= 0 ? "var(--ok)" : "var(--warn)" }}>{t.points >= 0 ? "+" : ""}{t.points}</b>
                 </span>
               </li>

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { bulkUpdate, updateProductField } from "../actions";
-import { CONDITION_SHORT, imageUrl } from "@/lib/format";
+import { CONDITION_SHORT, productPhoto } from "@/lib/format";
 import { PRODUCT_TYPES } from "@/lib/constants";
 import type { AdminProduct } from "@/lib/types";
 
@@ -106,11 +106,11 @@ export function ProductsTable({ products, isAdmin }: { products: AdminProduct[];
           </tr></thead>
           <tbody>
             {products.map((p) => {
-              const src = imageUrl(p.image_path);
+              const photo = productPhoto(p);
               return (
                 <tr key={p.id} className={sel.has(p.id) ? "sel" : undefined}>
                   <td><input type="checkbox" checked={sel.has(p.id)} onChange={() => toggle(p.id)} aria-label={`Select ${p.name}`} /></td>
-                  <td><div className="th">{src && <Image src={src} alt="" fill sizes="36px" style={{ objectFit: "cover" }} />}</div></td>
+                  <td><div className="th">{photo && <Image src={photo.src} alt="" fill sizes="36px" style={{ objectFit: "cover" }} unoptimized={photo.external} />}</div></td>
                   <td style={{ minWidth: 220 }}>
                     <Link href={`/admin/products/${p.id}`} style={{ fontWeight: 600, textDecoration: "none" }}>{p.name}</Link>
                     {p.is_demo && <span className="pill" style={{ marginLeft: 6 }}>Demo</span>}

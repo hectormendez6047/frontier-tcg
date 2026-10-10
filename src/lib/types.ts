@@ -31,6 +31,10 @@ export type Product = {
   is_demo: boolean;
   created_at: string;
   image_path?: string | null;
+  image_url?: string | null;
+  product_kind?: string | null;
+  grader?: string | null;
+  grade?: string | null;
 };
 
 export type AdminProduct = Product & {
@@ -40,6 +44,7 @@ export type AdminProduct = Product & {
   cost: number | null;
   notes: string | null;
   location_id: number | null;
+  tcgplayer_id: string | null;
   updated_at: string;
 };
 
@@ -68,6 +73,11 @@ export type Settings = {
   tiktok: string;
   comingSoon: boolean;
   comingSoonMessage: string;
+  siteMode: "live" | "coming_soon" | "maintenance";
+  maintenanceMessage: string;
+  autoBulk: boolean;
+  bulkThreshold: number;
+  rewardsLive: boolean;
 };
 
 export type StoreEvent = {
@@ -83,3 +93,9 @@ export type StoreEvent = {
 };
 
 export type Role = "owner" | "admin" | "staff" | "customer";
+
+export type PokemonSet = { name: string; code: string | null; series: string | null; release_date: string | null };
+export type Facets = {
+  games: string[]; sets: string[]; rarities: string[]; teams: string[]; players: string[];
+  years: string[]; brands: string[]; kinds: string[]; total: number;
+};

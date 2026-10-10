@@ -15,6 +15,7 @@ export const isSports = (p: Pick<Product, "game" | "product_type">) =>
 
 export function metaLine(p: Product): string {
   const parts: string[] = [];
+  if (p.grader) parts.push(`${p.grader} ${p.grade ?? ""}`.trim());
   if (isSports(p)) {
     [p.year, p.manufacturer, p.team].forEach((x) => x && parts.push(x));
     if (p.rookie) parts.push("RC");
@@ -40,6 +41,13 @@ export function stockState(available: number, lowAt: number): [StockState, strin
 export function imageUrl(path?: string | null): string | null {
   if (!path) return null;
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/product-images/${path}`;
+}
+
+/** The photo to show for a product: an uploaded photo first, otherwise an outside photo link (e.g. from a TCGplayer export). */
+export function productPhoto(p: { image_path?: string | null; image_url?: string | null }): { src: string; external: boolean } | null {
+  if (p.image_path) return { src: imageUrl(p.image_path)!, external: false };
+  if (p.image_url && /^https:\/\//.test(p.image_url)) return { src: p.image_url, external: true };
+  return null;
 }
 
 export const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL || "https://frontiertcgshop.com").replace(/\/$/, "");

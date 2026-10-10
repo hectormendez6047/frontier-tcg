@@ -1,11 +1,14 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Pages that stay reachable while the store is in "coming soon" mode.
-const ALWAYS_OPEN = ["/login", "/auth", "/admin", "/no-access", "/coming-soon"];
+// Pages that stay reachable while the store is closed. Staff sign-in and admin always work.
+// During "coming soon" customers can still create and manage accounts; during maintenance they can't.
+const OPEN_ALWAYS = ["/login", "/auth", "/admin", "/no-access", "/coming-soon"];
+const OPEN_COMING_SOON = [...OPEN_ALWAYS, "/signup", "/account"];
 
-// Cache the coming-soon switch briefly so every page view doesn't hit the database.
-let comingSoonCache: { value: boolean; at: number } | null = null;
+type Mode = "live" | "coming_soon" | "maintenance";
+// Cache the store mode briefly so every page view doesn't hit the database.
+let modeCache: { value: Mode; at: number } | null = null;
 const CACHE_MS = 15_000;
 
 export async function middleware(request: NextRequest) {
@@ -40,17 +43,18 @@ export async function middleware(request: NextRequest) {
   }
 
   if (path === "/coming-soon") return bare(request, response);
-  if (ALWAYS_OPEN.some((p) => path === p || path.startsWith(p + "/"))) return response;
 
-  // Coming-soon mode: the public sees the holding page; signed-in staff see the real store.
-  let comingSoon = comingSoonCache && Date.now() - comingSoonCache.at < CACHE_MS ? comingSoonCache.value : null;
-  if (comingSoon === null) {
+  // Store mode: live, coming soon or maintenance. The public sees the holding page; signed-in staff see the real store.
+  let mode = modeCache && Date.now() - modeCache.at < CACHE_MS ? modeCache.value : null;
+  if (mode === null) {
     const { data } = await supabase.from("store_settings").select("data").eq("id", 1).maybeSingle();
-    const v = (data?.data as { comingSoon?: boolean } | undefined)?.comingSoon;
-    comingSoon = v !== false; // on unless the owner has switched it off
-    comingSoonCache = { value: comingSoon, at: Date.now() };
+    const d = (data?.data ?? {}) as { siteMode?: Mode; comingSoon?: boolean };
+    mode = d.siteMode ?? (d.comingSoon === false ? "live" : "coming_soon");
+    modeCache = { value: mode, at: Date.now() };
   }
-  if (!comingSoon) return response;
+  if (mode === "live") return response;
+  const open = mode === "maintenance" ? OPEN_ALWAYS : OPEN_COMING_SOON;
+  if (open.some((p) => path === p || path.startsWith(p + "/"))) return response;
 
   if (user) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
@@ -58,7 +62,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (path.startsWith("/api/")) {
-    return NextResponse.json({ error: "Coming soon" }, { status: 503 });
+    return NextResponse.json({ error: mode === "maintenance" ? "Down for maintenance" : "Coming soon" }, { status: 503 });
   }
   if (path === "/sitemap.xml") return new NextResponse("", { status: 404 });
 

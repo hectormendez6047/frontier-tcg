@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getFacets, getFeatured, getNewArrivals, getSettings, getUpcomingEvents } from "@/lib/data";
+import { getFacets, getFeatured, getNewArrivals, getNewSealed, getSettings, getUpcomingEvents } from "@/lib/data";
 import { ProductGrid } from "@/components/ProductCard";
 import { HeroFinder } from "@/components/HeroFinder";
 import { CategoryTiles } from "@/components/CategoryTiles";
@@ -8,8 +8,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { money } from "@/lib/format";
 
 export default async function Home() {
-  const [st, facets, featured, newest, events] = await Promise.all([
-    getSettings(), getFacets(), getFeatured(8), getNewArrivals(8), getUpcomingEvents(3),
+  const [st, facets, featured, newest, sealed, events] = await Promise.all([
+    getSettings(), getFacets(), getFeatured(8), getNewArrivals(8), getNewSealed(4), getUpcomingEvents(3),
   ]);
   const lowAt = Number(st.lowStock) || 3;
   return (
@@ -58,7 +58,19 @@ export default async function Home() {
         </section>
       )}
 
-      <section className="block" style={featured.length ? { paddingTop: 0 } : undefined}>
+      {sealed.length > 0 && (
+        <section className="block" style={featured.length ? { paddingTop: 0 } : undefined}>
+          <div className="wrap">
+            <div className="sec-head">
+              <div><div className="eyebrow" style={{ marginBottom: 8 }}>Booster boxes · ETBs · Bundles · Hobby boxes</div><h2>Sealed product</h2></div>
+              <Link href="/shop/sealed">All sealed →</Link>
+            </div>
+            <ProductGrid products={sealed} lowAt={lowAt} />
+          </div>
+        </section>
+      )}
+
+      <section className="block" style={featured.length || sealed.length ? { paddingTop: 0 } : undefined}>
         <div className="wrap">
           <div className="sec-head"><h2>New arrivals</h2><Link href="/shop?sort=new">Shop all →</Link></div>
           {newest.length ? <ProductGrid products={newest} lowAt={lowAt} /> : (
@@ -76,11 +88,17 @@ export default async function Home() {
           </div>
           <div>
             <div className="eyebrow">Frontier Rewards</div>
-            <h3 style={{ fontSize: 28 }}>Earn on every purchase</h3>
-            <p className="muted" style={{ margin: 0 }}>
-              Get {st.pointsPerDollar} point{Number(st.pointsPerDollar) === 1 ? "" : "s"} for every dollar you spend. Every {st.rewardThreshold} points is {money(st.rewardAmount)} off a future purchase.
-            </p>
-            <Link href="/rewards" className="btn sm" style={{ alignSelf: "flex-start" }}>How it works</Link>
+            {st.rewardsLive ? (<>
+              <h3 style={{ fontSize: 28 }}>Earn on every purchase</h3>
+              <p className="muted" style={{ margin: 0 }}>
+                Get {st.pointsPerDollar} point{Number(st.pointsPerDollar) === 1 ? "" : "s"} for every dollar you spend. Every {st.rewardThreshold} points is {money(st.rewardAmount)} off a future purchase.
+              </p>
+              <Link href="/rewards" className="btn sm" style={{ alignSelf: "flex-start" }}>How it works</Link>
+            </>) : (<>
+              <h3 style={{ fontSize: 28 }}>Rewards are coming soon</h3>
+              <p className="muted" style={{ margin: 0 }}>Points, coupons and member-only rewards are on the way. Create an account now and you&apos;ll be ready when they launch.</p>
+              <Link href="/signup" className="btn sm" style={{ alignSelf: "flex-start" }}>Create an account</Link>
+            </>)}
           </div>
         </div>
       </section>

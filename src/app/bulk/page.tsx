@@ -10,9 +10,9 @@ export default async function Bulk({ searchParams }: { searchParams: Promise<Rec
       <div className="page-head">
         <div className="eyebrow">Bulk</div>
         <h1>Bulk cards</h1>
-        <p>Commons, uncommons, reverse holos and base cards. Set the quantity on each row and add as many as you need.</p>
+        <p>Commons, uncommons, reverse holos and other cards under $1. Set the quantity on each row and add as many as you need.</p>
       </div>
-      <Listing sp={sp} category="bulk" basePath="/bulk" mode="list" defaultInStock defaultSort="name" searchPlaceholder="Search bulk" />
+      <Listing sp={sp} category="bulk" scope="bulk" basePath="/bulk" mode="list" defaultInStock defaultSort="name" searchPlaceholder="Search bulk" />
     </div>
   );
 }
