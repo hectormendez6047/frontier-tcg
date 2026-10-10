@@ -343,3 +343,12 @@ table.at{width:100%;border-collapse:collapse;font-size:14.5px;min-width:820px}
 .soon-foot a{color:var(--muted)}
 .form .s1{grid-column:span 1}
 @media (max-width:560px){.form .s1{grid-column:span 6}}
+
+/* packing slip */
+.slip{background:#fff;color:#111;padding:28px;border-radius:var(--r);max-width:800px}
+@media print{
+  header.site,footer.site,.anav,.demo-bar,.no-print,.admin > .anav,.page-head{display:none!important}
+  html,body{background:#fff!important;color:#111!important}
+  .admin{display:block!important;padding:0!important}
+  .slip{padding:0;max-width:none}
+}

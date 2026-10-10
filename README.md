@@ -19,6 +19,8 @@ You need three free accounts: **GitHub** (holds the code), **Supabase** (databas
 
 **Update 2:** also run `supabase/migrations/0002_accounts_filters_rewards.sql` the same way. It adds customer accounts, every Pokémon set, the category filters, automatic Bulk sorting and the rewards catalog. It's safe to run more than once.
 
+**Update 3 (checkout and orders):** run `supabase/migrations/0003_orders.sql` the same way, then add the Square keys and `SUPABASE_SERVICE_ROLE_KEY` in Vercel (see `.env.example`).
+
 ### 2. Create your owner login
 
 1. In Supabase, go to **Authentication → Users → Add user → Create new user**.

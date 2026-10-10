@@ -61,8 +61,18 @@ export function SettingsForm({ initial }: { initial: Settings }) {
       </div>
       <div className="panel"><h3>Checkout</h3><div className="form">
         {b("shippingEnabled", "Shipping enabled")}{b("pickupEnabled", "Local pickup enabled")}
-        {t("pickupFee", "Pickup processing fee $", 2, "number")}{t("shippingFlat", "Flat shipping rate $", 2, "number")}{t("freeShippingOver", "Free shipping over $ (0 = off)", 2, "number")}
-      </div></div>
+        {t("pickupFee", "Pickup processing fee $", 2, "number")}{t("shippingFlat", "Tracked shipping rate $", 2, "number")}{t("freeShippingOver", "Free shipping over $ (0 = off)", 2, "number")}
+        {b("envelopeEnabled", "Offer envelope shipping (no tracking)")}
+        {t("envelopePrice", "Envelope price $", 1, "number")}{t("envelopeMax", "Envelope max order $", 2, "number")}
+        {t("orderEmail", "Email new-order alerts to", 6, "email")}
+      </div>
+        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>Envelope shipping is only offered for orders of single cards up to the max amount. Leave the alert email blank to skip new-order emails.</p></div>
+      <div className="panel"><h3>Sales tax</h3><div className="form">
+        {b("taxEnabled", "Charge Texas sales tax")}{t("taxRate", "Tax rate %", 2, "number")}{b("taxShipping", "Also tax shipping and pickup fees")}
+      </div>
+        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>
+          Tax is added to local pickups and orders shipped to Texas addresses. Laredo&apos;s combined rate is 8.25%. Check with your accountant that these settings fit your sales tax permit.
+        </p></div>
       <div className="panel"><h3>Inventory</h3><div className="form">
         {t("lowStock", "Low-stock warning at", 2, "number")}
         {t("bulkThreshold", "Bulk price: singles at or under $", 2, "number")}

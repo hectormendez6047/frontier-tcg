@@ -29,6 +29,13 @@ export const DEFAULT_SETTINGS: Settings = {
   autoBulk: true,
   bulkThreshold: 0.99,
   rewardsLive: false,
+  taxEnabled: true,
+  taxRate: 8.25,
+  taxShipping: true,
+  envelopeEnabled: false,
+  envelopePrice: 1.5,
+  envelopeMax: 20,
+  orderEmail: "",
   comingSoonMessage:
     "Our online store is almost ready. Soon you'll be able to search our live inventory, check stock and order singles, sealed product and sports cards from Laredo.",
 };

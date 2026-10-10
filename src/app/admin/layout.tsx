@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const viewer = await requireRole("staff");
   return (
     <div className="wrap">
-      <div className="page-head" style={{ paddingBottom: 0, display: "flex", justifyContent: "space-between", alignItems: "end", gap: 16, flexWrap: "wrap" }}>
+      <div className="page-head no-print" style={{ paddingBottom: 0, display: "flex", justifyContent: "space-between", alignItems: "end", gap: 16, flexWrap: "wrap" }}>
         <div><div className="eyebrow">Frontier TCG</div><h1>Store admin</h1></div>
         <div className="muted" style={{ fontSize: 14 }}>
           {viewer.email} · <span className="pill">{viewer.role}</span> · <a href="/auth/signout">Sign out</a>

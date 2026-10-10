@@ -6,6 +6,7 @@ export function AdminNav({ isAdmin, isOwner }: { isAdmin: boolean; isOwner: bool
   const path = usePathname();
   const items: [string, string, boolean][] = [
     ["/admin", "Dashboard", true],
+    ["/admin/orders", "Orders", true],
     ["/admin/products", "Products", true],
     ["/admin/import", "Import / Export", isAdmin],
     ["/admin/rewards", "Rewards", true],

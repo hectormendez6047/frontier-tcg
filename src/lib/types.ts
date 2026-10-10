@@ -78,6 +78,13 @@ export type Settings = {
   autoBulk: boolean;
   bulkThreshold: number;
   rewardsLive: boolean;
+  taxEnabled: boolean;
+  taxRate: number;
+  taxShipping: boolean;
+  envelopeEnabled: boolean;
+  envelopePrice: number;
+  envelopeMax: number;
+  orderEmail: string;
 };
 
 export type StoreEvent = {

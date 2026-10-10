@@ -257,6 +257,9 @@ const SettingsInput = z.object({
   comingSoon: z.boolean(), comingSoonMessage: z.string().max(600),
   siteMode: z.enum(["live", "coming_soon", "maintenance"]), maintenanceMessage: z.string().max(600),
   autoBulk: z.boolean(), bulkThreshold: z.coerce.number().min(0).max(100), rewardsLive: z.boolean(),
+  taxEnabled: z.boolean(), taxRate: z.coerce.number().min(0).max(20), taxShipping: z.boolean(),
+  envelopeEnabled: z.boolean(), envelopePrice: z.coerce.number().min(0).max(50), envelopeMax: z.coerce.number().min(0).max(1000),
+  orderEmail: z.string().trim().max(200).refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email for new-order alerts."),
 }).partial();
 
 export async function saveSettings(raw: Record<string, unknown>): Promise<Result> {

@@ -10,16 +10,24 @@ export default async function Dashboard() {
   const supabase = await createClient();
   const settings = await getSettings();
   const lowAt = Number(settings.lowStock) || 3;
-  const [{ data: stats }, { data: lowRows }, events] = await Promise.all([
+  const [{ data: stats }, { data: lowRows }, events, { data: salesData }] = await Promise.all([
     supabase.rpc("admin_stats"),
     supabase.rpc("admin_search_products", { q: "", p_status: "active", p_low: lowAt, p_limit: 12 }),
     getUpcomingEvents(3),
+    supabase.rpc("admin_sales"),
   ]);
+  const sales = (salesData ?? {}) as Record<string, number>;
   const s = (stats ?? {}) as Record<string, number>;
   const low = ((lowRows ?? []) as { product: AdminProduct; total: number }[]).map((r) => r.product);
   const lowTotal = lowRows?.[0]?.total ?? 0;
   return (
     <>
+      <div className="kpis">
+        <Link href="/admin/orders?tab=ship" className="kpi" style={{ textDecoration: "none" }}><div className="k">Orders to ship</div><div className="v" style={{ color: sales.to_ship ? "var(--warn)" : undefined }}>{sales.to_ship ?? 0}</div><div className="s">{sales.to_pickup ? `${sales.to_pickup} pickups waiting` : "Open the orders list"}</div></Link>
+        <div className="kpi"><div className="k">Sales today</div><div className="v">{money(sales.today)}</div><div className="s">{sales.orders_today ?? 0} orders</div></div>
+        <div className="kpi"><div className="k">Last 7 days</div><div className="v">{money(sales.week)}</div></div>
+        <div className="kpi"><div className="k">This month</div><div className="v">{money(sales.month)}</div></div>
+      </div>
       <div className="kpis">
         <div className="kpi"><div className="k">Active products</div><div className="v">{s.active ?? 0}</div><div className="s">{s.archived ?? 0} archived</div></div>
         <div className="kpi"><div className="k">Units in stock</div><div className="v">{Number(s.units ?? 0).toLocaleString()}</div></div>
@@ -44,10 +52,6 @@ export default async function Dashboard() {
         {lowTotal > low.length && <p style={{ margin: "12px 0 0" }}><Link href={`/admin/products?low=1`}>See all {lowTotal} →</Link></p>}
       </div>
 
-      <div className="panel">
-        <h3>Orders and sales</h3>
-        <p className="muted" style={{ margin: 0 }}>Sales totals, today&apos;s orders and new customers appear here once Square checkout is connected (stage 2).</p>
-      </div>
 
       <div className="panel">
         <h3>Rewards and events</h3>
