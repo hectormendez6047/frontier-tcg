@@ -45,6 +45,7 @@ export type AdminProduct = Product & {
   notes: string | null;
   location_id: number | null;
   tcgplayer_id: string | null;
+  bin: string | null;
   updated_at: string;
 };
 
@@ -85,6 +86,15 @@ export type Settings = {
   envelopePrice: number;
   envelopeMax: number;
   orderEmail: string;
+  pickupFeeLabel: string;
+  pickupFeeFreeOver: number;
+  pickupHours: string;
+  pickupLocation: string;
+  policyReturns: string;
+  policyShipping: string;
+  policyPickup: string;
+  policyPrivacy: string;
+  policyTerms: string;
 };
 
 export type StoreEvent = {

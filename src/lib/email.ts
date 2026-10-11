@@ -54,16 +54,29 @@ function itemsTable(o: EmailOrder) {
   const rows = o.items.map((i) => `<tr><td style="padding:8px 0;border-bottom:1px solid #2b2823">${i.quantity} × ${esc(i.name)}<div style="color:#a39d91;font-size:12px">${esc(i.details)}</div></td><td style="padding:8px 0;border-bottom:1px solid #2b2823;text-align:right;white-space:nowrap">${money(i.line_total)}</td></tr>`).join("");
   const line = (l: string, v: number) => `<tr><td style="padding:4px 0;color:#a39d91">${l}</td><td style="padding:4px 0;text-align:right">${money(v)}</td></tr>`;
   return `<table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">${rows}
-${line("Subtotal", o.subtotal)}${o.fulfillment === "pickup" ? line("Pickup processing", o.pickup_fee) : line("Shipping", o.shipping)}${o.tax ? line("Sales tax", o.tax) : ""}
+${line("Subtotal", o.subtotal)}${o.fulfillment === "pickup" ? line(o.pickup_fee > 0 ? "Order prep fee" : "Order prep fee (free)", o.pickup_fee) : line("Shipping", o.shipping)}${o.tax ? line("Sales tax", o.tax) : ""}
 <tr><td style="padding:8px 0;font-weight:700">Total</td><td style="padding:8px 0;text-align:right;font-weight:700">${money(o.total)}</td></tr></table>`;
 }
 
 const orderLink = (o: EmailOrder) => `${siteUrl()}/order/${o.id}?t=${o.access_token}`;
 const addr = (o: EmailOrder) => [o.full_name, o.ship_line1, o.ship_line2, `${o.ship_city ?? ""}, ${o.ship_state ?? ""} ${o.ship_zip ?? ""}`].filter(Boolean).map(esc).join("<br>");
 
+async function pickupInfo() {
+  try {
+    const { getSettings } = await import("./data");
+    const st = await getSettings();
+    return { hours: st.pickupHours || "Saturdays and Sundays, 12–6 PM", where: st.pickupLocation || "our pop-up shop in Laredo, Texas" };
+  } catch {
+    return { hours: "Saturdays and Sundays, 12–6 PM", where: "our pop-up shop in Laredo, Texas" };
+  }
+}
+
 export async function sendOrderConfirmation(o: EmailOrder) {
-  const how = o.fulfillment === "pickup"
-    ? "<p>We'll email you when your order is ready to pick up at the shop. Bring this email or your order number.</p>"
+  const p = o.fulfillment === "pickup" ? await pickupInfo() : null;
+  const how = p
+    ? `<p>We'll pull your items, bag them and email you when your order is ready. Orders placed during the week are ready on the next pop-up day.</p>
+       <p style="color:#d6d1c6"><b style="color:#C39443">Pickup:</b> ${esc(p.where)}<br><b style="color:#C39443">Hours:</b> ${esc(p.hours)}</p>
+       <p><b>At pickup, show this email or your order number (#${o.number}).</b> Someone else can pick up for you with your name and order number. We hold orders for 14 days.</p>`
     : `<p>We'll email you a tracking number when it ships to:</p><p style="color:#d6d1c6">${addr(o)}</p>`;
   const html = layout(`Thanks for your order, ${o.full_name.split(" ")[0]}!`,
     `<p>Order <b>#${o.number}</b> is confirmed and paid.</p>${how}${itemsTable(o)}
@@ -92,7 +105,11 @@ export async function sendShipped(o: EmailOrder) {
 }
 
 export async function sendReadyForPickup(o: EmailOrder) {
-  const html = layout(`Order #${o.number} is ready for pickup`, `<p>Your order is ready at Frontier TCG in Laredo. Bring your order number (#${o.number}) and a photo ID.</p>${itemsTable(o)}`);
+  const p = await pickupInfo();
+  const html = layout(`Order #${o.number} is ready for pickup`,
+    `<p>Your order is bagged, sealed and waiting for you.</p>
+     <p style="color:#d6d1c6"><b style="color:#C39443">Where:</b> ${esc(p.where)}<br><b style="color:#C39443">When:</b> ${esc(p.hours)}</p>
+     <p><b>Show this email or your order number (#${o.number}) at the table</b> and we'll hand you your bag. Please check your items before you leave. We hold orders for 14 days.</p>${itemsTable(o)}`);
   return send(o.email, `Order #${o.number} is ready for pickup · Frontier TCG`, html, `Order #${o.number} is ready for pickup at Frontier TCG.`);
 }
 

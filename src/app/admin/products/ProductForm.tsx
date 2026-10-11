@@ -90,7 +90,7 @@ export function ProductForm({ initial, images: initialImages, locations, isAdmin
       tags: str("tags").split(",").map((t) => t.trim()).filter(Boolean),
       status: str("status"), featured: !!d.featured, is_demo: !!d.is_demo,
       images: images.map((i) => ({ path: i.path, alt: i.alt ?? null })),
-      product_kind: str("product_kind"), grader: str("grader"), grade: str("grade"), tcgplayer_id: str("tcgplayer_id"), image_url: str("image_url"),
+      product_kind: str("product_kind"), grader: str("grader"), grade: str("grade"), tcgplayer_id: str("tcgplayer_id"), bin: str("bin"), image_url: str("image_url"),
     };
     const r = await saveProduct(payload);
     setSaving(false);
@@ -229,6 +229,7 @@ export function ProductForm({ initial, images: initialImages, locations, isAdmin
           {txt("tags", "Tags, separated by commas", 6)}
           {txt("image_url", "Photo link (used when no photo is uploaded)", 4, { placeholder: "https://…" })}
           {txt("tcgplayer_id", "TCGplayer ID", 2)}
+          {txt("bin", "Bin / batch (staff only)", 2, { placeholder: "A101" })}
           {select("status", "Status", 3, [["active", "Active (visible)"], ["draft", "Draft (hidden)"], ["archived", "Archived (hidden)"]], false)}
           {check("featured", "Feature on homepage", 3)}
           {check("is_demo", "Demo product (sample data)", 6)}

@@ -9,7 +9,7 @@ import { effectivePrice, money } from "@/lib/format";
 import { cancelCheckout, payOrder, startCheckout } from "./actions";
 
 type Settings = {
-  shippingEnabled: boolean; shippingFlat: number; freeShippingOver: number; pickupEnabled: boolean; pickupFee: number;
+  shippingEnabled: boolean; shippingFlat: number; freeShippingOver: number; pickupEnabled: boolean; pickupFee: number; pickupFeeFreeOver: number; pickupFeeLabel: string; pickupHours: string; pickupLocation: string;
   envelopeEnabled: boolean; envelopePrice: number; envelopeMax: number; taxEnabled: boolean; taxRate: number; taxShipping: boolean;
 };
 type Prefill = { email: string; name: string; phone: string; address: { line1: string; line2: string; city: string; state: string; zip: string } | null } | null;
@@ -89,7 +89,7 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
   const envelopeOk = st.envelopeEnabled && sub <= st.envelopeMax && lines.every((l) => SINGLE_TYPES.includes(l.p.product_type));
   const m: Method = method === "pickup" && !st.pickupEnabled ? "ship" : method === "envelope" && !envelopeOk ? "ship" : method;
   const ship = m === "ship" ? (st.freeShippingOver > 0 && sub >= st.freeShippingOver ? 0 : st.shippingFlat) : m === "envelope" ? st.envelopePrice : 0;
-  const fee = m === "pickup" ? st.pickupFee : 0;
+  const fee = m === "pickup" && !(st.pickupFeeFreeOver > 0 && sub >= st.pickupFeeFreeOver) ? st.pickupFee : 0;
   const taxed = st.taxEnabled && (m === "pickup" || /^(tx|texas)$/i.test(f.state.trim()));
   const tax = taxed ? Math.round((sub + (st.taxShipping ? ship + fee : 0)) * st.taxRate) / 100 : 0;
   const total = sub + ship + fee + tax;
@@ -155,7 +155,10 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
               {st.pickupEnabled && (
                 <label className="opt">
                   <input type="radio" name="m" value="pickup" checked={m === "pickup"} onChange={() => setMethod("pickup")} />
-                  <span><b>Local pickup in Laredo</b><br /><span className="muted" style={{ fontSize: 14 }}>{money(st.pickupFee)} pickup processing fee. We&apos;ll email you when it&apos;s ready.</span></span>
+                  <span><b>Local pickup at our Laredo pop-up</b><br /><span className="muted" style={{ fontSize: 14 }}>
+                    {st.pickupHours ? <>{st.pickupHours}. </> : null}We bag your order and email you when it&apos;s ready. Show your confirmation email at pickup.<br />
+                    {st.pickupFee > 0 ? <>{money(st.pickupFee)} {st.pickupFeeLabel.toLowerCase()}{st.pickupFeeFreeOver > 0 ? <>, free on orders of {money(st.pickupFeeFreeOver)}+</> : null}. </> : null}
+                    <a href="/policies/pickup" target="_blank" rel="noopener">How pickup works</a></span></span>
                 </label>
               )}
             </div>
@@ -201,7 +204,7 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
             </div>
           ))}
           <div className="l" style={{ borderTop: "1px solid var(--line)", paddingTop: 10 }}><span>Subtotal</span><span className="num mono">{money(sub)}</span></div>
-          {m === "pickup" ? <div className="l"><span>Pickup processing</span><span className="num mono">{money(fee)}</span></div>
+          {m === "pickup" ? <div className="l"><span>{st.pickupFeeLabel}<br /><span className="muted" style={{ fontSize: 12.5 }}>Covers pulling, sorting and bagging your order</span></span><span className="num mono">{fee > 0 ? money(fee) : "Free"}</span></div>
             : <div className="l"><span>{m === "envelope" ? "Envelope shipping" : "Shipping"}</span><span className="num mono">{ship ? money(ship) : "Free"}</span></div>}
           <div className="l"><span>Sales tax{taxed ? ` (${st.taxRate}%)` : ""}</span><span className="num mono">{taxed ? money(tax) : m === "pickup" ? money(0) : "—"}</span></div>
           <div className="l tot"><span>Total</span><span>{money(total)}</span></div>
@@ -210,6 +213,7 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
             {busy ? "Processing…" : `Pay ${money(total)}`}
           </button>
           <span className="muted" style={{ fontSize: 13 }}>Texas orders and pickups include sales tax. Your card is charged when you click Pay.</span>
+          <span className="muted" style={{ fontSize: 13 }}>Cards and sealed product are final sale, except damaged, wrong, not-as-described or counterfeit items. See <a href="/policies/returns" target="_blank" rel="noopener">Returns</a> and <a href="/policies/terms" target="_blank" rel="noopener">Terms</a>.</span>
         </aside>
       </div>
       )}

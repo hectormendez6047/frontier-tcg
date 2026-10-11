@@ -14,6 +14,7 @@ export async function Footer() {
             <p className="muted" style={{ fontSize: 14.5, margin: "14px 0 0", maxWidth: "34ch" }}>
               Trading • Collectibles • Gaming<br />{st.address}
             </p>
+            {st.pickupHours && <p style={{ fontSize: 14.5, margin: "10px 0 0" }}><span style={{ color: "var(--gold)" }}>Pop-up shop:</span> {st.pickupHours}</p>}
             {(st.email || st.phone) && (
               <p style={{ fontSize: 14.5, margin: "10px 0 0" }}>{[st.email, st.phone].filter(Boolean).join(" · ")}</p>
             )}
@@ -46,7 +47,8 @@ export async function Footer() {
               <li><Link href="/policies/privacy">Privacy</Link></li>
               <li><Link href="/policies/terms">Terms</Link></li>
               <li><Link href="/policies/shipping">Shipping</Link></li>
-              <li><Link href="/policies/returns">Returns</Link></li>
+              <li><Link href="/policies/returns">Returns &amp; refunds</Link></li>
+              <li><Link href="/policies/pickup">Local pickup</Link></li>
             </ul>
           </div>
         </div>

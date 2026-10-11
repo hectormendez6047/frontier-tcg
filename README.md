@@ -23,6 +23,8 @@ You need three free accounts: **GitHub** (holds the code), **Supabase** (databas
 
 **Update 4 (emails):** run `supabase/migrations/0004_emails.sql`, then follow "Make account emails work" below and add `RESEND_API_KEY` in Vercel.
 
+**Update 5 (pickup, bins and policies):** run `supabase/migrations/0005_pickup_bins.sql`. It adds bin / batch codes (A101, A102…) to products and orders, the Order prep fee ($1, free on pickup orders of $25+) and pop-up hours. Store policies are edited in Admin → Settings → Policies.
+
 ### 2. Create your owner login
 
 1. In Supabase, go to **Authentication → Users → Add user → Create new user**.
@@ -102,7 +104,11 @@ In Vercel: **Project → Settings → Domains → Add** `frontiertcgshop.com`. V
 | Import or update from a spreadsheet | Import / Export → drop a .csv → check the preview → Apply. Rows with an existing SKU update that product. |
 | Download your inventory | Import / Export → Export all products |
 | Rewards | Rewards → Add member, open a member to record a purchase, redeem, or adjust points |
-| Turn on local pickup / change the fee | Settings → Checkout |
+| Turn on local pickup | Settings → Checkout |
+| Change the Order prep fee, pop-up hours or location | Settings → Local pickup |
+| Edit Returns, Shipping, Pickup, Privacy or Terms | Settings → Policies |
+| Save where a card is stored | Products → Edit → Bin / batch (or a `bin` / `batch` column in your CSV) |
+| Pull a pickup order | Orders → open it → Pull list (sorted by bin) → Packing slip → print, staple it to the bag |
 | Homepage text and announcement | Settings → Homepage |
 | Featured products | Edit a product → tick “Feature on homepage” |
 | Give an employee access | Invite them in Supabase (Authentication → Users → Invite), then Team → enter their email and pick Staff or Admin |

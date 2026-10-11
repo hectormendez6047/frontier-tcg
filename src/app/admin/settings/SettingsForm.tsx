@@ -61,12 +61,17 @@ export function SettingsForm({ initial }: { initial: Settings }) {
       </div>
       <div className="panel"><h3>Checkout</h3><div className="form">
         {b("shippingEnabled", "Shipping enabled")}{b("pickupEnabled", "Local pickup enabled")}
-        {t("pickupFee", "Pickup processing fee $", 2, "number")}{t("shippingFlat", "Tracked shipping rate $", 2, "number")}{t("freeShippingOver", "Free shipping over $ (0 = off)", 2, "number")}
+        {t("shippingFlat", "Tracked shipping rate $", 2, "number")}{t("freeShippingOver", "Free shipping over $ (0 = off)", 2, "number")}
         {b("envelopeEnabled", "Offer envelope shipping (no tracking)")}
         {t("envelopePrice", "Envelope price $", 1, "number")}{t("envelopeMax", "Envelope max order $", 2, "number")}
         {t("orderEmail", "Email new-order alerts to", 6, "email")}
       </div>
         <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>Envelope shipping is only offered for orders of single cards up to the max amount. Leave the alert email blank to skip new-order emails.</p></div>
+      <div className="panel"><h3>Local pickup</h3><div className="form">
+        {t("pickupFeeLabel", "Fee name customers see", 2)}{t("pickupFee", "Fee $", 2, "number")}{t("pickupFeeFreeOver", "No fee on orders of $ (0 = always charge)", 2, "number")}
+        {t("pickupHours", "Pickup hours", 3)}{t("pickupLocation", "Pickup location", 3)}
+      </div>
+        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>Shown at checkout, in pickup emails and on the Local Pickup policy page. Customers see the fee explained as “Covers pulling, sorting and bagging your order.”</p></div>
       <div className="panel"><h3>Sales tax</h3><div className="form">
         {b("taxEnabled", "Charge Texas sales tax")}{t("taxRate", "Tax rate %", 2, "number")}{b("taxShipping", "Also tax shipping and pickup fees")}
       </div>
@@ -91,11 +96,16 @@ export function SettingsForm({ initial }: { initial: Settings }) {
         {t("email", "Email", 3)}{t("phone", "Phone", 3)}{t("address", "Location")}{area("aboutText", "About page text", 140)}
         {t("instagram", "Instagram URL", 2)}{t("facebook", "Facebook URL", 2)}{t("tiktok", "TikTok URL", 2)}
       </div></div>
-      <div className="panel"><h3>Integrations</h3>
-        <dl className="spec" style={{ margin: 0, border: 0, padding: 0 }}>
-          <dt>Square</dt><dd>Not connected yet. Stage 2 adds Square checkout, then register inventory sync and Square Loyalty.</dd>
-          <dt>Email</dt><dd>Not connected yet. Order emails arrive with Square checkout.</dd>
-        </dl></div>
+      <div className="panel"><h3>Policies</h3>
+        <p className="muted" style={{ fontSize: 14, margin: "0 0 12px" }}>
+          These are the pages linked in the footer. Leave a box empty to go back to the standard text.
+          Formatting: a blank line starts a new paragraph, <span className="mono">## </span> starts a heading, <span className="mono">- </span> starts a bullet, and <span className="mono">**words**</span> makes them bold.
+          These fill in automatically: <span className="mono">{"{hours}"}</span>, <span className="mono">{"{location}"}</span>, <span className="mono">{"{prepFee}"}</span>, <span className="mono">{"{freeOver}"}</span>.
+        </p>
+        <div className="form">
+          {area("policyReturns", "Returns & Refunds", 220)}{area("policyShipping", "Shipping", 220)}{area("policyPickup", "Local Pickup", 220)}
+          {area("policyPrivacy", "Privacy", 220)}{area("policyTerms", "Terms of Service", 220)}
+        </div></div>
       {msg && <p className={msg.err ? "err" : ""} style={msg.err ? undefined : { color: "var(--ok)" }} role="status">{msg.t}</p>}
       <button className="btn gold" type="submit" disabled={busy} style={{ marginBottom: 24 }}>{busy ? "Saving…" : "Save settings"}</button>
     </form>

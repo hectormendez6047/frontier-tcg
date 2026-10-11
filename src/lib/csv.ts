@@ -3,7 +3,7 @@ import { SPORTS } from "./constants";
 export const CSV_COLUMNS = [
   "sku", "name", "product_type", "product_kind", "game", "set_name", "card_number", "rarity", "condition", "language", "holo",
   "player", "team", "year", "manufacturer", "rookie", "parallel", "is_insert", "grader", "grade",
-  "price", "sale_price", "cost", "quantity", "status", "featured", "description", "tags", "tcgplayer_id", "image_url",
+  "price", "sale_price", "cost", "quantity", "status", "featured", "description", "tags", "tcgplayer_id", "image_url", "bin",
 ] as const;
 
 /** Column names from other tools (TCGplayer, TCG Automate and common spreadsheets) mapped to ours. */
@@ -17,6 +17,8 @@ export const CSV_ALIASES: Record<string, string> = {
   "tcg marketplace price": "price", "marketplace price": "price", "my store price": "store_price", "your price": "price", "list price": "price",
   "tcg market price": "market_price", "market price": "market_price", "photo url": "image_url", "image url": "image_url", image: "image_url",
   brand: "manufacturer", "graded by": "grader", "grading company": "grader",
+  batch: "bin", "batch number": "bin", "batch code": "bin", "bin location": "bin", "bin code": "bin", "location code": "bin",
+  "storage location": "bin", box: "bin", "box number": "bin",
 };
 
 export function toCSV(rows: Record<string, unknown>[], cols: readonly string[] = CSV_COLUMNS): string {

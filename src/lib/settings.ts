@@ -1,4 +1,5 @@
 import type { Settings } from "./types";
+import { POLICY_DEFAULTS } from "./policies";
 
 export const DEFAULT_SETTINGS: Settings = {
   storeName: "Frontier TCG",
@@ -13,7 +14,7 @@ export const DEFAULT_SETTINGS: Settings = {
   shippingFlat: 4.99,
   freeShippingOver: 75,
   pickupEnabled: false,
-  pickupFee: 2,
+  pickupFee: 1,
   lowStock: 3,
   pointsPerDollar: 1,
   rewardThreshold: 100,
@@ -36,6 +37,11 @@ export const DEFAULT_SETTINGS: Settings = {
   envelopePrice: 1.5,
   envelopeMax: 20,
   orderEmail: "",
+  pickupFeeLabel: "Order prep fee",
+  pickupFeeFreeOver: 25,
+  pickupHours: "Saturdays and Sundays, 12–6 PM",
+  pickupLocation: "Our Frontier TCG pop-up shop in Laredo, Texas",
+  ...POLICY_DEFAULTS,
   comingSoonMessage:
     "Our online store is almost ready. Soon you'll be able to search our live inventory, check stock and order singles, sealed product and sports cards from Laredo.",
 };

@@ -48,7 +48,7 @@ const ProductInput = z.object({
   description: z.string().trim().max(5000).optional().nullable().transform((v) => v || null),
   notes: z.string().trim().max(5000).optional().nullable().transform((v) => v || null),
   tags: z.array(z.string().trim().max(40)).max(30).default([]),
-  product_kind: optText, grader: optText, grade: optText, tcgplayer_id: optText,
+  product_kind: optText, grader: optText, grade: optText, tcgplayer_id: optText, bin: optText,
   image_url: z.string().trim().max(600).optional().nullable().transform((v) => v || null)
     .refine((v) => !v || /^https:\/\/[^\s]+$/.test(v), "Photo links must start with https://"),
   status: z.enum(["active", "draft", "archived"]),
@@ -79,7 +79,7 @@ export async function saveProduct(raw: ProductPayload): Promise<Result<{ id: str
     price: v.price, sale_price: v.sale_price, compare_at_price: v.compare_at_price, cost: v.cost,
     quantity: v.quantity, reserved_quantity: v.reserved_quantity, location_id: v.location_id ?? null,
     description: v.description, notes: v.notes, tags: v.tags, status: v.status, featured: v.featured, is_demo: v.is_demo,
-    product_kind: v.product_kind, grader: v.grader, grade: v.grade, tcgplayer_id: v.tcgplayer_id, image_url: v.image_url,
+    product_kind: v.product_kind, grader: v.grader, grade: v.grade, tcgplayer_id: v.tcgplayer_id, bin: v.bin, image_url: v.image_url,
   };
 
   if (v.isNew) {
@@ -204,7 +204,7 @@ const ImportRow = z.object({
   data: z.record(z.unknown()),
 });
 
-const IMPORT_FIELDS = new Set(["product_kind", "grader", "grade", "tcgplayer_id", "image_url", "sku", "name", "product_type", "game", "set_name", "card_number", "rarity", "card_type", "player", "team", "year",
+const IMPORT_FIELDS = new Set(["bin", "product_kind", "grader", "grade", "tcgplayer_id", "image_url", "sku", "name", "product_type", "game", "set_name", "card_number", "rarity", "card_type", "player", "team", "year",
   "manufacturer", "rookie", "parallel", "is_insert", "holo", "language", "condition", "price", "sale_price", "compare_at_price", "cost",
   "quantity", "description", "notes", "tags", "status", "featured", "is_demo"]);
 
@@ -263,6 +263,10 @@ const SettingsInput = z.object({
   siteMode: z.enum(["live", "coming_soon", "maintenance"]), maintenanceMessage: z.string().max(600),
   autoBulk: z.boolean(), bulkThreshold: z.coerce.number().min(0).max(100), rewardsLive: z.boolean(),
   taxEnabled: z.boolean(), taxRate: z.coerce.number().min(0).max(20), taxShipping: z.boolean(),
+  pickupFeeLabel: z.string().trim().max(40), pickupFeeFreeOver: z.coerce.number().min(0).max(10000),
+  pickupHours: z.string().trim().max(120), pickupLocation: z.string().trim().max(200),
+  policyReturns: z.string().max(20000), policyShipping: z.string().max(20000), policyPickup: z.string().max(20000),
+  policyPrivacy: z.string().max(20000), policyTerms: z.string().max(20000),
   envelopeEnabled: z.boolean(), envelopePrice: z.coerce.number().min(0).max(50), envelopeMax: z.coerce.number().min(0).max(1000),
   orderEmail: z.string().trim().max(200).refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email for new-order alerts."),
 }).partial();
@@ -287,7 +291,9 @@ export async function saveSettings(raw: Record<string, unknown>): Promise<Result
   if (changed.length) {
     await supabase.from("audit_logs").insert(changed.map((k) => ({
       actor_id: viewer!.id, actor_email: viewer!.email, action: "changed", entity: "settings", entity_name: "Settings",
-      field: k, old_value: String(before[k] ?? ""), new_value: String((next as Record<string, unknown>)[k] ?? ""),
+      field: k,
+      old_value: k.startsWith("policy") ? "(previous text)" : String(before[k] ?? ""),
+      new_value: k.startsWith("policy") ? "(edited)" : String((next as Record<string, unknown>)[k] ?? ""),
     })));
   }
   revalidateStore();

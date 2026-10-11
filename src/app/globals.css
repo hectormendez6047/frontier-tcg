@@ -307,6 +307,8 @@ table.at{width:100%;border-collapse:collapse;font-size:14.5px;min-width:820px}
 .page-head p{color:var(--muted);max-width:60ch;margin:10px 0 0}
 .prose{max-width:66ch;color:#d6d1c6;font-size:17px}
 .prose p{margin:0 0 14px}
+.policy h2{font-family:var(--display);font-size:24px;letter-spacing:.02em;color:var(--fg);margin:30px 0 10px;text-transform:uppercase}
+.policy ul{margin:0 0 16px;padding-left:22px}.policy li{margin:0 0 8px}.policy li::marker{color:var(--gold)}.policy b{color:var(--fg)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
 /* app additions */

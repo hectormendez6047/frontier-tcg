@@ -115,7 +115,7 @@ export function ProductsTable({ products, isAdmin }: { products: AdminProduct[];
                     <Link href={`/admin/products/${p.id}`} style={{ fontWeight: 600, textDecoration: "none" }}>{p.name}</Link>
                     {p.is_demo && <span className="pill" style={{ marginLeft: 6 }}>Demo</span>}
                     {p.featured && <span className="pill" style={{ marginLeft: 6, color: "var(--gold)" }}>Featured</span>}
-                    <div className="muted mono" style={{ fontSize: 12 }}>{[p.sku, p.game, p.set_name, p.card_number && "#" + p.card_number].filter(Boolean).join(" · ")}</div>
+                    <div className="muted mono" style={{ fontSize: 12 }}>{[p.bin && "Bin " + p.bin, p.sku, p.game, p.set_name, p.card_number && "#" + p.card_number].filter(Boolean).join(" · ")}</div>
                   </td>
                   <td>{PRODUCT_TYPES[p.product_type]}</td>
                   <td className="mono" style={{ fontSize: 13 }}>{p.condition ? CONDITION_SHORT[p.condition] ?? p.condition : ""}</td>

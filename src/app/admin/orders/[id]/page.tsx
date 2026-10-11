@@ -19,6 +19,8 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
   ]);
   if (!o) notFound();
   const order = o as OrderRow;
+  const pull = ((items ?? []) as (OrderItemRow & { bin: string | null })[])
+    .slice().sort((a, b) => (a.bin ?? "~").localeCompare(b.bin ?? "~", undefined, { numeric: true }) || a.name.localeCompare(b.name));
   return (
     <>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
@@ -35,6 +37,16 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
           {order.customer_note && (<><dt>Their note</dt><dd>{order.customer_note}</dd></>)}
           {order.payment_id && (<><dt>Square payment</dt><dd className="mono" style={{ fontSize: 13 }}>{order.payment_id}</dd></>)}
         </dl>
+      </div>
+      <div className="panel">
+        <h3>Pull list</h3>
+        <div className="tscroll"><table className="at" style={{ minWidth: 0 }}>
+          <thead><tr><th style={{ textAlign: "left" }}>Bin</th><th style={{ textAlign: "left" }}>Qty</th><th style={{ textAlign: "left" }}>Item</th><th style={{ textAlign: "left" }}>SKU</th></tr></thead>
+          <tbody>{pull.map((i) => (
+            <tr key={i.id}><td className="mono" style={{ color: "var(--gold)", fontWeight: 700 }}>{i.bin ?? "—"}</td><td>{i.quantity}</td><td>{i.name}{i.details ? <span className="muted"> · {i.details}</span> : null}</td><td className="mono" style={{ fontSize: 12 }}>{i.sku}</td></tr>
+          ))}</tbody>
+        </table></div>
+        {pull.some((i) => !i.bin) && <p className="muted" style={{ fontSize: 13, margin: "10px 0 0" }}>Items without a bin don&apos;t have one saved on the product. Add it under Products → Edit → Bin / batch.</p>}
       </div>
       <OrderView o={order} items={(items ?? []) as OrderItemRow[]} />
       <div className="panel" style={{ marginTop: 20 }}>
