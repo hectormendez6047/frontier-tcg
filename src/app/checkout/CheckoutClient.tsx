@@ -9,7 +9,7 @@ import { effectivePrice, money } from "@/lib/format";
 import { cancelCheckout, payOrder, startCheckout } from "./actions";
 
 type Settings = {
-  shippingEnabled: boolean; shippingFlat: number; freeShippingOver: number; pickupEnabled: boolean; pickupFee: number; pickupFeeFreeOver: number; pickupFeeLabel: string; pickupHours: string; pickupLocation: string;
+  shippingEnabled: boolean; shippingFlat: number; freeShippingOver: number; pickupEnabled: boolean; pickupFee: number; pickupFeeFreeOver: number; pickupFeeLabel: string; pickupPausedNote: string; pickupHours: string; pickupLocation: string;
   envelopeEnabled: boolean; envelopePrice: number; envelopeMax: number; taxEnabled: boolean; taxRate: number; taxShipping: boolean;
 };
 type Prefill = { email: string; name: string; phone: string; address: { line1: string; line2: string; city: string; state: string; zip: string } | null } | null;
@@ -160,6 +160,12 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
                     {st.pickupFee > 0 ? <>{money(st.pickupFee)} {st.pickupFeeLabel.toLowerCase()}{st.pickupFeeFreeOver > 0 ? <>, free on orders of {money(st.pickupFeeFreeOver)}+</> : null}. </> : null}
                     <a href="/policies/pickup" target="_blank" rel="noopener">How pickup works</a></span></span>
                 </label>
+              )}
+              {!st.pickupEnabled && st.pickupPausedNote && (
+                <div className="opt" style={{ opacity: 0.6, cursor: "default" }}>
+                  <input type="radio" disabled aria-hidden="true" />
+                  <span><b>Local pickup</b><br /><span className="muted" style={{ fontSize: 14 }}>{st.pickupPausedNote}</span></span>
+                </div>
               )}
             </div>
           </div>

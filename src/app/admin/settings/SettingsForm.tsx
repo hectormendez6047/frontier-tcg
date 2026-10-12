@@ -60,14 +60,24 @@ export function SettingsForm({ initial }: { initial: Settings }) {
         <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>Signed-in staff always see the full store. Changes reach every visitor within about 15 seconds.</p>
       </div>
       <div className="panel"><h3>Checkout</h3><div className="form">
-        {b("shippingEnabled", "Shipping enabled")}{b("pickupEnabled", "Local pickup enabled")}
+        {b("shippingEnabled", "Shipping enabled")}
         {t("shippingFlat", "Tracked shipping rate $", 2, "number")}{t("freeShippingOver", "Free shipping over $ (0 = off)", 2, "number")}
         {b("envelopeEnabled", "Offer envelope shipping (no tracking)")}
         {t("envelopePrice", "Envelope price $", 1, "number")}{t("envelopeMax", "Envelope max order $", 2, "number")}
         {t("orderEmail", "Email new-order alerts to", 6, "email")}
       </div>
         <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>Envelope shipping is only offered for orders of single cards up to the max amount. Leave the alert email blank to skip new-order emails.</p></div>
-      <div className="panel"><h3>Local pickup</h3><div className="form">
+      <div className="panel" style={{ borderColor: !s.pickupEnabled ? "var(--line)" : undefined }}><h3>Local pickup</h3>
+        <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
+          {([[true, "On", "Customers can choose pickup at checkout."], [false, "Paused", "Pickup is hidden at checkout. Use this when the pop-up is closed or you're away."]] as const).map(([v, l, d]) => (
+            <label key={l} className="opt">
+              <input type="radio" name="pickupEnabled" checked={!!s.pickupEnabled === v} onChange={() => set("pickupEnabled", v)} />
+              <span><b>{l}</b><br /><span className="muted" style={{ fontSize: 14 }}>{d}</span></span>
+            </label>
+          ))}
+        </div>
+        <div className="form">
+        {t("pickupPausedNote", "Note shown at checkout while paused (leave empty to show nothing)")}
         {t("pickupFeeLabel", "Fee name customers see", 2)}{t("pickupFee", "Fee $", 2, "number")}{t("pickupFeeFreeOver", "No fee on orders of $ (0 = always charge)", 2, "number")}
         {t("pickupHours", "Pickup hours", 3)}{t("pickupLocation", "Pickup location", 3)}
       </div>

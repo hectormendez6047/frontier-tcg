@@ -263,7 +263,7 @@ const SettingsInput = z.object({
   siteMode: z.enum(["live", "coming_soon", "maintenance"]), maintenanceMessage: z.string().max(600),
   autoBulk: z.boolean(), bulkThreshold: z.coerce.number().min(0).max(100), rewardsLive: z.boolean(),
   taxEnabled: z.boolean(), taxRate: z.coerce.number().min(0).max(20), taxShipping: z.boolean(),
-  pickupFeeLabel: z.string().trim().max(40), pickupFeeFreeOver: z.coerce.number().min(0).max(10000),
+  pickupFeeLabel: z.string().trim().max(40), pickupPausedNote: z.string().trim().max(200), pickupFeeFreeOver: z.coerce.number().min(0).max(10000),
   pickupHours: z.string().trim().max(120), pickupLocation: z.string().trim().max(200),
   policyReturns: z.string().max(20000), policyShipping: z.string().max(20000), policyPickup: z.string().max(20000),
   policyPrivacy: z.string().max(20000), policyTerms: z.string().max(20000),

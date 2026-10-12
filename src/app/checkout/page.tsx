@@ -23,7 +23,7 @@ export default async function CheckoutPage() {
       settings={{
         shippingEnabled: st.shippingEnabled, shippingFlat: Number(st.shippingFlat), freeShippingOver: Number(st.freeShippingOver),
         pickupEnabled: st.pickupEnabled, pickupFee: Number(st.pickupFee), pickupFeeFreeOver: Number(st.pickupFeeFreeOver) || 0,
-        pickupFeeLabel: st.pickupFeeLabel || "Order prep fee", pickupHours: st.pickupHours, pickupLocation: st.pickupLocation,
+        pickupFeeLabel: st.pickupFeeLabel || "Order prep fee", pickupPausedNote: st.pickupPausedNote ?? "", pickupHours: st.pickupHours, pickupLocation: st.pickupLocation,
         envelopeEnabled: st.envelopeEnabled, envelopePrice: Number(st.envelopePrice), envelopeMax: Number(st.envelopeMax),
         taxEnabled: st.taxEnabled, taxRate: Number(st.taxRate), taxShipping: st.taxShipping,
       }}

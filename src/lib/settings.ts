@@ -38,6 +38,7 @@ export const DEFAULT_SETTINGS: Settings = {
   envelopeMax: 20,
   orderEmail: "",
   pickupFeeLabel: "Order prep fee",
+  pickupPausedNote: "Pickup at our weekend pop-up is paused right now. Check back soon!",
   pickupFeeFreeOver: 25,
   pickupHours: "Saturdays and Sundays, 12–6 PM",
   pickupLocation: "Our Frontier TCG pop-up shop in Laredo, Texas",

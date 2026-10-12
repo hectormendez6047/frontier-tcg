@@ -87,6 +87,7 @@ export type Settings = {
   envelopeMax: number;
   orderEmail: string;
   pickupFeeLabel: string;
+  pickupPausedNote: string;
   pickupFeeFreeOver: number;
   pickupHours: string;
   pickupLocation: string;
