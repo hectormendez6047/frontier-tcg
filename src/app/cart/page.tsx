@@ -16,9 +16,9 @@ export default function CartPage() {
   const { cart, ready, products, settings, error, protect } = useCartProducts({ protect: true });
   const lines = (products ?? []).filter((p) => cart[p.id]).map((p) => ({ p, q: cart[p.id], a: p.available_quantity }));
   const sub = lines.reduce((s, l) => s + effectivePrice(l.p) * Math.min(l.q, l.a), 0);
-  const hasCards = lines.some(({ p }) => ["single", "bulk", "sports"].includes(p.product_type) && !p.grader);
-  const hasProtection = lines.some(({ p }) => protect.some((x) => x.id === p.id) || (p.product_type === "accessory" && ["sleeves", "top_loaders", "one_touch"].includes(p.product_kind ?? "")));
-  const offer = hasCards && !hasProtection && protect.length > 0;
+  const addonIds = new Set(protect.map((x) => x.id));
+  const hasAddon = lines.some(({ p }) => addonIds.has(p.id));
+  const offer = !hasAddon && protect.length > 0 && lines.some(({ p }) => !addonIds.has(p.id));
   const points = Math.floor(sub * (settings?.pointsPerDollar ?? 1));
 
   if (!ready || (products === null && !error)) return <div className="wrap"><div className="page-head"><h1>Your cart</h1></div><div className="skeleton" style={{ height: 160, margin: "24px 0 64px" }} /></div>;
@@ -62,16 +62,16 @@ export default function CartPage() {
           <div className="l muted"><span>Rewards earned</span><span className="num mono">{points} pts</span></div>
           <div className="l tot"><span>Total</span><span>{money(sub)}</span></div>
           {offer && asked ? (
-            <div className="protect" role="dialog" aria-label="Protect your cards">
-              <b>Protect your cards?</b>
-              <p className="muted">Add sleeves or top loaders to keep your new cards safe.</p>
+            <div className="protect" role="dialog" aria-label="Add supplies to your order">
+              <b>Stock up on supplies?</b>
+              <p className="muted">Ripping packs or adding to your binder? Grab sleeves and top loaders while you&apos;re here. Totally optional: every single we sell already comes sleeved and protected. These are extras for your collection.</p>
               {protect.map((x) => (
                 <div className="prow" key={x.id}>
                   <div><Link href={`/p/${x.slug}`}>{x.name}</Link><div className="meta">{money(effectivePrice(x))}</div></div>
                   <div className="padd"><AddToCart id={x.id} name={x.name} available={x.available_quantity} compact /></div>
                 </div>
               ))}
-              <button className="btn gold" type="button" onClick={() => router.push("/checkout")}>Continue to checkout</button>
+              <button className="btn" type="button" onClick={() => router.push("/checkout")}>No thanks, continue to checkout</button>
             </div>
           ) : (
             <button className="btn gold" type="button" onClick={() => (offer && !asked ? setAsked(true) : router.push("/checkout"))}>Checkout</button>

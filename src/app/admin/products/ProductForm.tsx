@@ -232,6 +232,18 @@ export function ProductForm({ initial, images: initialImages, locations, isAdmin
           {txt("bin", "Bin / batch (staff only)", 2, { placeholder: "A101" })}
           {select("status", "Status", 3, [["active", "Active (visible)"], ["draft", "Draft (hidden)"], ["archived", "Archived (hidden)"]], false)}
           {check("featured", "Feature on homepage", 3)}
+          {(() => {
+            const tags = str("tags").split(",").map((t) => t.trim()).filter(Boolean);
+            const on = tags.some((t) => t.toLowerCase() === "checkout-addon");
+            return (
+              <div className="fld s3" style={{ justifyContent: "flex-end" }}>
+                <label className="check" style={{ font: "inherit", letterSpacing: 0, textTransform: "none", color: "var(--fg)", minHeight: 42 }}>
+                  <input type="checkbox" checked={on} onChange={(e) => set("tags", (e.target.checked ? [...tags, "checkout-addon"] : tags.filter((t) => t.toLowerCase() !== "checkout-addon")).join(", "))} />
+                  Offer as a checkout add-on
+                </label>
+              </div>
+            );
+          })()}
           {check("is_demo", "Demo product (sample data)", 6)}
         </div>
       </div>
