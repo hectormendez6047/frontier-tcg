@@ -24,7 +24,7 @@ export default async function CheckoutPage() {
         shippingEnabled: st.shippingEnabled, shippingFlat: Number(st.shippingFlat), freeShippingOver: Number(st.freeShippingOver),
         pickupEnabled: st.pickupEnabled, pickupFee: Number(st.pickupFee), pickupFeeFreeOver: Number(st.pickupFeeFreeOver) || 0,
         pickupFeeLabel: st.pickupFeeLabel || "Order prep fee", pickupPausedNote: st.pickupPausedNote ?? "", pickupHours: st.pickupHours, pickupLocation: st.pickupLocation,
-        envelopeEnabled: st.envelopeEnabled, envelopePrice: Number(st.envelopePrice), envelopeMax: Number(st.envelopeMax),
+        envelopeEnabled: st.envelopeEnabled, envelopePrice: Number(st.envelopePrice), envelopeMax: Number(st.envelopeMax), envelopeMaxCards: Number(st.envelopeMaxCards) || 10,
         taxEnabled: st.taxEnabled, taxRate: Number(st.taxRate), taxShipping: st.taxShipping,
       }}
     />

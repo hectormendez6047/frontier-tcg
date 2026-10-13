@@ -39,7 +39,7 @@ export function LoginForm({ next }: { next: string }) {
         <div className="fld"><label htmlFor="password">Password</label><input id="password" name="password" type="password" required autoComplete="current-password" /></div>
       )}
       {err && <p className="err" role="alert" style={{ margin: 0 }}>{err}</p>}
-      <button className="btn gold" type="submit" disabled={busy}>{busy ? "Please wait…" : mode === "password" ? "Sign in" : "Send reset link"}</button>
+      <button className="btn gold" type="submit" disabled={busy} aria-busy={busy}>{busy ? "Please wait…" : mode === "password" ? "Sign in" : "Send reset link"}</button>
       <button className="btn-link muted" type="button" style={{ fontSize: 14 }} onClick={() => { setMode(mode === "password" ? "reset" : "password"); setErr(""); }}>
         {mode === "password" ? "Forgot your password?" : "Back to sign in"}
       </button>

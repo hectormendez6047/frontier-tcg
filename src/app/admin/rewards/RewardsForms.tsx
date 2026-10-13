@@ -45,7 +45,7 @@ export function AddMemberForm() {
         <div className="fld s2"><label htmlFor="mb-email">Email</label><input id="mb-email" name="email" type="email" /></div>
         <div className="fld s2"><label htmlFor="mb-start">Starting points</label><input id="mb-start" name="start" type="number" min={0} step={1} defaultValue={0} /></div>
         <div className="fld" style={{ flexDirection: "row", gap: 10 }}>
-          <button className="btn gold" type="submit" disabled={busy}>{busy ? "Adding…" : "Add member"}</button>
+          <button className="btn gold" type="submit" disabled={busy} aria-busy={busy}>{busy ? "Adding…" : "Add member"}</button>
           <button className="btn" type="button" onClick={() => setOpen(false)}>Cancel</button>
         </div>
         {err && <p className="err" role="alert" style={{ gridColumn: "span 6", margin: 0 }}>{err}</p>}
@@ -114,7 +114,7 @@ export function MemberActions({ memberId, points, pointsPerDollar, canDelete, na
           <form style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "end" }} onSubmit={(e) => { e.preventDefault(); act("purchase", parseFloat(amt)); }}>
             <div className="fld" style={{ flex: 1, minWidth: 120 }}><label htmlFor="tx-amt">Purchase total $</label>
               <input id="tx-amt" type="number" step="0.01" min={0} value={amt} placeholder="0.00" onChange={(e) => setAmt(e.target.value)} /></div>
-            <button className="btn gold" type="submit" disabled={busy || earn <= 0}>Add {earn} pts</button>
+            <button className="btn gold" type="submit" disabled={busy || earn <= 0} aria-busy={busy}>Add {earn} pts</button>
           </form>
           <p className="muted" style={{ margin: 0, fontSize: 13.5 }}>Points are calculated from your rewards rules.</p>
         </div>
@@ -128,7 +128,7 @@ export function MemberActions({ memberId, points, pointsPerDollar, canDelete, na
             {(() => { const c = catalog.find((x) => x.id === giveId); return c ? (
               <p className="muted" style={{ margin: 0, fontSize: 13.5 }}>{c.points_cost ? (points >= c.points_cost ? `Uses ${c.points_cost} of ${name}'s ${points} points.` : `Needs ${c.points_cost} points. ${name} has ${points}.`) : "No points needed."}{c.left != null ? ` ${c.left} left to give.` : ""}</p>
             ) : null; })()}
-            <button className="btn gold" type="button" style={{ alignSelf: "flex-start" }} disabled={busy || !giveId}
+            <button className="btn gold" type="button" style={{ alignSelf: "flex-start" }} disabled={busy || !giveId} aria-busy={busy}
               onClick={async () => { setBusy(true); setMsg(null); const r = await issueReward(giveId, { memberIds: [memberId] }); setBusy(false);
                 if (!r.ok) return setMsg({ t: r.error, err: true });
                 if (!r.data!.count) return setMsg({ t: "That reward has run out.", err: true });
@@ -141,7 +141,7 @@ export function MemberActions({ memberId, points, pointsPerDollar, canDelete, na
         <form className="form" onSubmit={(e) => { e.preventDefault(); const n = parseInt(adj, 10); if (!n) return setMsg({ t: "Enter a number of points, like 25 or -10.", err: true }); act("adjust", n, note || "Manual adjustment"); }}>
           <div className="fld s2"><label htmlFor="adj-pts">Points (+ or −)</label><input id="adj-pts" type="number" step={1} placeholder="e.g. 25 or -10" value={adj} onChange={(e) => setAdj(e.target.value)} /></div>
           <div className="fld s4"><label htmlFor="adj-note">Reason</label><input id="adj-note" placeholder="Event bonus, correction, returned item…" value={note} onChange={(e) => setNote(e.target.value)} /></div>
-          <div className="fld"><button className="btn sm" type="submit" disabled={busy} style={{ alignSelf: "flex-start" }}>Apply adjustment</button></div>
+          <div className="fld"><button className="btn sm" type="submit" disabled={busy} aria-busy={busy} style={{ alignSelf: "flex-start" }}>Apply adjustment</button></div>
         </form>
       </div>
       <div className="panel">

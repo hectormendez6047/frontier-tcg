@@ -178,7 +178,7 @@ export function ImportTool() {
           </table></div>
           {items.length > 500 && <p className="muted" style={{ fontSize: 13 }}>Showing the first 500 rows.</p>}
           <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
-            <button className="btn gold" type="button" disabled={busy || !(count("new") + count("update"))} onClick={apply}>
+            <button className="btn gold" type="button" disabled={busy || !(count("new") + count("update"))} aria-busy={busy} onClick={apply}>
               {busy ? "Importing…" : `Apply ${count("new") + count("update")} rows`}
             </button>
             <button className="btn" type="button" onClick={() => setItems(null)}>Cancel</button>

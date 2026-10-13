@@ -17,7 +17,7 @@ export function NewsletterForm({ source, cta = "Subscribe" }: { source: string; 
       <label className="sr" htmlFor={`nl-${source}`}>Email</label>
       <input id={`nl-${source}`} type="email" required placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
       <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: "absolute", left: -9999, width: 1, height: 1 }} />
-      <button className="btn gold" type="submit" disabled={state === "busy"}>{state === "busy" ? "…" : cta}</button>
+      <button className="btn gold" type="submit" disabled={state === "busy"} aria-busy={state === "busy"}>{state === "busy" ? "…" : cta}</button>
       {err && <span className="err" role="alert" style={{ flexBasis: "100%" }}>{err}</span>}
     </form>
   );

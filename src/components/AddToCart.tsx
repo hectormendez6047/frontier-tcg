@@ -19,12 +19,13 @@ export function QtyStepper({ value, onChange, max, min = 1, label }: {
 export function AddToCart({ id, name, available, compact }: { id: string; name: string; available: number; compact?: boolean }) {
   const { add } = useCart();
   const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
   const soldOut = available <= 0;
   return (
     <>
       <QtyStepper value={qty} onChange={setQty} max={Math.max(1, available)} label={`Quantity for ${name}`} />
-      <button className={`btn gold${compact ? " sm add" : ""}`} type="button" disabled={soldOut} onClick={() => add(id, qty, available, name)}>
-        {soldOut ? "Sold out" : compact ? "Add" : "Add to cart"}
+      <button className={`btn gold${compact ? " sm add" : ""}`} type="button" disabled={soldOut} onClick={() => { add(id, qty, available, name); setAdded(true); setTimeout(() => setAdded(false), 1600); }}>
+        {soldOut ? "Sold out" : added ? (compact ? "✓ Added" : "✓ Added to cart") : compact ? "Add" : "Add to cart"}
       </button>
     </>
   );

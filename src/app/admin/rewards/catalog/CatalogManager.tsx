@@ -148,7 +148,7 @@ export function CatalogManager({ items, members, recent, isAdmin }: { items: Cat
           </>
         )}
         <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 14, flexWrap: "wrap" }}>
-          <button className="btn gold" type="button" disabled={busy || !reward || (who === "some" && !picked.size)} onClick={give}>
+          <button className="btn gold" type="button" disabled={busy || !reward || (who === "some" && !picked.size)} aria-busy={busy} onClick={give}>
             {busy ? "Giving…" : who === "all" ? "Give to every member" : `Give to ${picked.size || ""} member${picked.size === 1 ? "" : "s"}`}
           </button>
           {msg && <span className={msg.err ? "err" : ""} style={msg.err ? undefined : { color: "var(--ok)" }} role="status">{msg.t}</span>}

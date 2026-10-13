@@ -10,7 +10,7 @@ export function SaveButton({ productId, initial, path }: { productId: string; in
   const [err, setErr] = useState("");
   return (
     <>
-      <button className="btn" type="button" aria-pressed={saved} disabled={busy} onClick={async () => {
+      <button className="btn" type="button" aria-pressed={saved} disabled={busy} aria-busy={busy} onClick={async () => {
         setBusy(true); setErr("");
         const r = await toggleFavorite(productId);
         setBusy(false);

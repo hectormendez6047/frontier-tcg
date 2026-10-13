@@ -52,7 +52,7 @@ export function AddressBook({ addresses }: { addresses: Address[] }) {
               </label></div>
             {err && <p className="err" role="alert" style={{ gridColumn: "span 6", margin: 0 }}>{err}</p>}
             <div className="fld" style={{ flexDirection: "row", gap: 10 }}>
-              <button className="btn gold" type="submit" disabled={busy}>{busy ? "Saving…" : "Save address"}</button>
+              <button className="btn gold" type="submit" disabled={busy} aria-busy={busy}>{busy ? "Saving…" : "Save address"}</button>
               {addresses.length > 0 && <button className="btn" type="button" onClick={() => setEdit(null)}>Cancel</button>}
             </div>
           </form>

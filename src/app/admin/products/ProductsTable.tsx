@@ -71,30 +71,30 @@ export function ProductsTable({ products, isAdmin }: { products: AdminProduct[];
         <div className="bulkbar" aria-busy={pending}>
           <b>{sel.size} selected</b>
           <input type="number" step="0.01" min="0" placeholder="Price $" aria-label="New price" value={price} onChange={(e) => setPrice(e.target.value)} />
-          <button className="btn sm" type="button" disabled={pending} onClick={() => run("price", parseFloat(price))}>Set price</button>
+          <button className="btn sm" type="button" disabled={pending} aria-busy={pending} onClick={() => run("price", parseFloat(price))}>Set price</button>
           <input type="number" step="1" placeholder="± %" aria-label="Percent change" value={pct} onChange={(e) => setPct(e.target.value)} />
-          <button className="btn sm" type="button" disabled={pending} onClick={() => run("pct", parseFloat(pct))}>Adjust %</button>
+          <button className="btn sm" type="button" disabled={pending} aria-busy={pending} onClick={() => run("pct", parseFloat(pct))}>Adjust %</button>
           <input type="number" step="1" min="0" placeholder="Qty" aria-label="Quantity" value={qty} onChange={(e) => setQty(e.target.value)} />
-          <button className="btn sm" type="button" disabled={pending} onClick={() => run("quantity", parseInt(qty, 10))}>Set qty</button>
+          <button className="btn sm" type="button" disabled={pending} aria-busy={pending} onClick={() => run("quantity", parseInt(qty, 10))}>Set qty</button>
           {isAdmin && (<>
             <select aria-label="Product type" value={type} onChange={(e) => setType(e.target.value)}>
               <option value="">Type…</option>
               {Object.entries(PRODUCT_TYPES).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
             </select>
-            <button className="btn sm" type="button" disabled={pending || !type} onClick={() => run("type", type)}>Set type</button>
+            <button className="btn sm" type="button" disabled={pending || !type} aria-busy={pending} onClick={() => run("type", type)}>Set type</button>
           </>)}
-          <button className="btn sm" type="button" disabled={pending} onClick={() => run("feature")}>Feature</button>
-          <button className="btn sm" type="button" disabled={pending} onClick={() => run("unfeature")}>Unfeature</button>
-          <button className="btn sm" type="button" disabled={pending} onClick={() => run("archive")}>Archive</button>
-          <button className="btn sm" type="button" disabled={pending} onClick={() => run("restore")}>Restore</button>
-          {isAdmin && <button className="btn sm danger" type="button" disabled={pending} onClick={() => setConfirmDelete(true)}>Delete</button>}
+          <button className="btn sm" type="button" disabled={pending} aria-busy={pending} onClick={() => run("feature")}>Feature</button>
+          <button className="btn sm" type="button" disabled={pending} aria-busy={pending} onClick={() => run("unfeature")}>Unfeature</button>
+          <button className="btn sm" type="button" disabled={pending} aria-busy={pending} onClick={() => run("archive")}>Archive</button>
+          <button className="btn sm" type="button" disabled={pending} aria-busy={pending} onClick={() => run("restore")}>Restore</button>
+          {isAdmin && <button className="btn sm danger" type="button" disabled={pending} aria-busy={pending} onClick={() => setConfirmDelete(true)}>Delete</button>}
           <button className="btn sm" type="button" onClick={() => setSel(new Set())}>Clear</button>
         </div>
       )}
       {confirmDelete && (
         <div className="confirm" style={{ marginBottom: 12 }}>
           Delete {sel.size} product{sel.size === 1 ? "" : "s"} and their photos permanently? Archiving keeps them recoverable.
-          <button className="btn sm danger" type="button" disabled={pending} onClick={() => run("delete")}>Delete</button>
+          <button className="btn sm danger" type="button" disabled={pending} aria-busy={pending} onClick={() => run("delete")}>Delete</button>
           <button className="btn sm" type="button" onClick={() => setConfirmDelete(false)}>Cancel</button>
         </div>
       )}

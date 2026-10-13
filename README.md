@@ -25,6 +25,8 @@ You need three free accounts: **GitHub** (holds the code), **Supabase** (databas
 
 **Update 5 (pickup, bins and policies):** run `supabase/migrations/0005_pickup_bins.sql`. It adds bin / batch codes (A101, A102…) to products and orders, the Order prep fee ($1, free on pickup orders of $25+) and pop-up hours. Store policies are edited in Admin → Settings → Policies.
 
+**Update 6 (envelope rules):** run `supabase/migrations/0006_envelope_rules.sql`. Envelopes (no tracking) are limited to raw singles, orders of $20 or less, and up to 10 cards (change the card limit in Settings → Checkout).
+
 ### 2. Create your owner login
 
 1. In Supabase, go to **Authentication → Users → Add user → Create new user**.

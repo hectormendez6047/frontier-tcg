@@ -18,7 +18,7 @@ export function StockAlert({ productId, defaultEmail }: { productId: string; def
       }}>
         <label className="sr" htmlFor="sa-email">Email</label>
         <input id="sa-email" type="email" required placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-        <button className="btn gold" type="submit" disabled={state === "busy"}>{state === "busy" ? "…" : "Email me"}</button>
+        <button className="btn gold" type="submit" disabled={state === "busy"} aria-busy={state === "busy"}>{state === "busy" ? "…" : "Email me"}</button>
         {err && <span className="err" role="alert" style={{ flexBasis: "100%" }}>{err}</span>}
       </form>
     </div>

@@ -50,7 +50,8 @@ Orders ship within 2 business days of payment, usually sooner. You'll get an ema
 
 ## Shipping options
 - **Tracked shipping:** recommended for every order, and required for sealed product and higher-value cards. Free over the amount shown at checkout.
-- **Plain envelope:** a cheaper option for a few low-priced singles. It has no tracking, so we can't replace or refund envelopes that get lost or arrive damaged in the mail. Choose tracked shipping if you want your order covered.
+- **Plain envelope:** a cheaper option for small orders of raw single cards: orders up to $20 and up to 10 cards. Up to 2 cards ship in top loaders; larger envelope orders ship penny-sleeved in a team bag between stiff cardboard. Sealed product, accessories and graded slabs always ship tracked. Envelopes have no tracking, so we can't replace or refund envelopes that get lost or arrive damaged in the mail. Choose tracked shipping if you want your order covered.
+- **Bigger card orders:** anything over the envelope limits ships tracked in a padded bubble mailer.
 
 ## Lost or damaged packages
 For tracked orders, if tracking shows no movement for 7 days or your package arrives damaged, email us within 48 hours of delivery (or of noticing the delay) and we'll file a claim and make it right. Please double-check your address at checkout. We aren't responsible for packages sent to an address entered incorrectly, though we'll help however we can.

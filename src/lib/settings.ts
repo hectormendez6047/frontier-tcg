@@ -36,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   envelopeEnabled: false,
   envelopePrice: 1.5,
   envelopeMax: 20,
+  envelopeMaxCards: 10,
   orderEmail: "",
   pickupFeeLabel: "Order prep fee",
   pickupPausedNote: "Pickup at our weekend pop-up is paused right now. Check back soon!",

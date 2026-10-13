@@ -5,13 +5,15 @@ export const metadata: Metadata = { title: "About", description: "Frontier TCG i
 
 export default async function About() {
   const st = await getSettings();
-  const rows = ([["Pop-up shop", st.pickupLocation], ["Hours", st.pickupHours], ["Location", st.address], ["Email", st.email], ["Phone", st.phone]] as const).filter(([, v]) => v);
+  const rows = ([["Pop-up shop", st.pickupEnabled ? st.pickupLocation : "Opening soon"], ["Hours", st.pickupEnabled ? st.pickupHours : ""], ["Location", st.address], ["Email", st.email], ["Phone", st.phone]] as const).filter(([, v]) => v);
   return (
     <div className="wrap">
       <div className="page-head"><div className="eyebrow">About</div><h1>About Frontier TCG</h1></div>
       <div className="prose" style={{ padding: "24px 0 64px" }}>
         {st.aboutText.split(/\n\s*\n/).map((p, i) => <p key={i}>{p}</p>)}
-        <p>Order online and pick up at the pop-up: we bag your order ahead of time so it&apos;s ready when you arrive. <a href="/policies/pickup">How pickup works</a>.</p>
+        {st.pickupEnabled
+          ? <p>Order online and pick up at the pop-up: we bag your order ahead of time so it&apos;s ready when you arrive. <a href="/policies/pickup">How pickup works</a>.</p>
+          : <p>Our weekend pop-up shop is opening soon. In the meantime, we ship orders anywhere in the US. <a href="/policies/shipping">Shipping details</a>.</p>}
         <dl className="spec">{rows.map(([k, v]) => (<div key={k} style={{ display: "contents" }}><dt>{k}</dt><dd>{v}</dd></div>))}</dl>
       </div>
     </div>

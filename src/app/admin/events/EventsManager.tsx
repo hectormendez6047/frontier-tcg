@@ -41,7 +41,7 @@ export function EventsManager({ events }: { events: StoreEvent[] }) {
             <div className="fld"><label htmlFor="ev-desc">Description</label><textarea id="ev-desc" value={edit.description} onChange={(e) => set("description", e.target.value)} /></div>
             {err && <p className="err" role="alert" style={{ gridColumn: "span 6", margin: 0 }}>{err}</p>}
             <div className="fld" style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-              <button className="btn gold" type="submit" disabled={busy}>{busy ? "Saving…" : "Save event"}</button>
+              <button className="btn gold" type="submit" disabled={busy} aria-busy={busy}>{busy ? "Saving…" : "Save event"}</button>
               <button className="btn" type="button" onClick={() => setEdit(null)}>Cancel</button>
               {edit.id && <button className="btn danger" type="button" onClick={async () => { const r = await deleteEvent(edit.id!); if (!r.ok) return setErr(r.error); setEdit(null); router.refresh(); }}>Delete</button>}
             </div>

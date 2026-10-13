@@ -63,10 +63,10 @@ export function SettingsForm({ initial }: { initial: Settings }) {
         {b("shippingEnabled", "Shipping enabled")}
         {t("shippingFlat", "Tracked shipping rate $", 2, "number")}{t("freeShippingOver", "Free shipping over $ (0 = off)", 2, "number")}
         {b("envelopeEnabled", "Offer envelope shipping (no tracking)")}
-        {t("envelopePrice", "Envelope price $", 1, "number")}{t("envelopeMax", "Envelope max order $", 2, "number")}
+        {t("envelopePrice", "Envelope price $", 2, "number")}{t("envelopeMax", "Envelope max order $ (up to 20)", 2, "number")}{t("envelopeMaxCards", "Envelope max cards", 2, "number")}
         {t("orderEmail", "Email new-order alerts to", 6, "email")}
       </div>
-        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>Envelope shipping is only offered for orders of single cards up to the max amount. Leave the alert email blank to skip new-order emails.</p></div>
+        <p className="muted" style={{ fontSize: 14, margin: "10px 0 0" }}>Envelope shipping is only offered for raw singles (no sealed, accessories or slabs), orders up to the max amount (never over $20) and up to the max number of cards. Bigger orders must use tracked shipping in a bubble mailer. Leave the alert email blank to skip new-order emails.</p></div>
       <div className="panel" style={{ borderColor: !s.pickupEnabled ? "var(--line)" : undefined }}><h3>Local pickup</h3>
         <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
           {([[true, "On", "Customers can choose pickup at checkout."], [false, "Paused", "Pickup is hidden at checkout. Use this when the pop-up is closed or you're away."]] as const).map(([v, l, d]) => (
@@ -113,11 +113,15 @@ export function SettingsForm({ initial }: { initial: Settings }) {
           These fill in automatically: <span className="mono">{"{hours}"}</span>, <span className="mono">{"{location}"}</span>, <span className="mono">{"{prepFee}"}</span>, <span className="mono">{"{freeOver}"}</span>.
         </p>
         <div className="form">
-          {area("policyReturns", "Returns & Refunds", 220)}{area("policyShipping", "Shipping", 220)}{area("policyPickup", "Local Pickup", 220)}
-          {area("policyPrivacy", "Privacy", 220)}{area("policyTerms", "Terms of Service", 220)}
+          {([["policyReturns", "Returns & Refunds"], ["policyShipping", "Shipping"], ["policyPickup", "Local Pickup"], ["policyPrivacy", "Privacy"], ["policyTerms", "Terms of Service"]] as const).map(([k, l]) => (
+            <div key={k} className="fld">
+              {area(k, l, 220)}
+              <button className="btn sm" type="button" style={{ alignSelf: "flex-start" }} onClick={() => set(k, "")}>Reset to standard text</button>
+            </div>
+          ))}
         </div></div>
       {msg && <p className={msg.err ? "err" : ""} style={msg.err ? undefined : { color: "var(--ok)" }} role="status">{msg.t}</p>}
-      <button className="btn gold" type="submit" disabled={busy} style={{ marginBottom: 24 }}>{busy ? "Saving…" : "Save settings"}</button>
+      <button className="btn gold" type="submit" disabled={busy} aria-busy={busy} style={{ marginBottom: 24 }}>{busy ? "Saving…" : "Save settings"}</button>
     </form>
   );
 }

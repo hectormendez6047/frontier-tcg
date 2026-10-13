@@ -32,11 +32,11 @@ export function Composer({ counts, enabled }: { counts: Record<string, number>; 
         <div className="fld s4"><label htmlFor="nl-burl">Button link</label><input id="nl-burl" value={c.buttonUrl} onChange={set("buttonUrl")} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", marginTop: 16 }}>
-        <button className="btn" type="button" disabled={!enabled || busy} onClick={async () => {
+        <button className="btn" type="button" disabled={!enabled || busy} aria-busy={busy} onClick={async () => {
           setBusy(true); setMsg(null); const r = await sendTest(c); setBusy(false);
           setMsg(r.ok ? { t: "Test sent to your email. Check how it looks before sending to everyone." } : { t: r.error, err: true });
         }}>Send me a test</button>
-        <button className="btn gold" type="button" disabled={!enabled || busy || !n} onClick={async () => {
+        <button className="btn gold" type="button" disabled={!enabled || busy || !n} aria-busy={busy} onClick={async () => {
           if (!confirm) return setConfirm(true);
           setBusy(true); setMsg(null); const r = await sendNewsletter(c, n); setBusy(false); setConfirm(false);
           if (!r.ok) return setMsg({ t: r.error, err: true });

@@ -57,7 +57,7 @@ export function SignupForm() {
         <span>Email me about restocks, new sets, events and deals. You can change this any time.</span>
       </label>
       {err && <p className="err" role="alert" style={{ margin: 0 }}>{err}</p>}
-      <button className="btn gold" type="submit" disabled={busy}>{busy ? "Creating account…" : "Create account"}</button>
+      <button className="btn gold" type="submit" disabled={busy} aria-busy={busy}>{busy ? "Creating account…" : "Create account"}</button>
       <p className="muted" style={{ fontSize: 13, margin: 0 }}>By creating an account you agree to our <Link href="/policies/terms">Terms</Link> and <Link href="/policies/privacy">Privacy Policy</Link>.</p>
     </form>
   );

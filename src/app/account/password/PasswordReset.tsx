@@ -23,7 +23,7 @@ export function PasswordReset() {
         <div className="fld"><label htmlFor="np-a">New password</label><input id="np-a" type="password" autoComplete="new-password" value={a} onChange={(e) => setA(e.target.value)} /></div>
         <div className="fld"><label htmlFor="np-b">Confirm new password</label><input id="np-b" type="password" autoComplete="new-password" value={b} onChange={(e) => setB(e.target.value)} /></div>
         {err && <p className="err" role="alert" style={{ margin: 0 }}>{err}</p>}
-        <button className="btn gold" type="submit" disabled={busy}>{busy ? "Saving…" : "Save password"}</button>
+        <button className="btn gold" type="submit" disabled={busy} aria-busy={busy}>{busy ? "Saving…" : "Save password"}</button>
       </form>
     </div>
   );

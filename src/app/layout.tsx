@@ -5,6 +5,8 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/components/CartProvider";
+import { NavProgress } from "@/components/NavProgress";
+import { Suspense } from "react";
 import { siteUrl } from "@/lib/format";
 
 const display = Saira_Condensed({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-display", display: "swap" });
@@ -25,6 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body>
+        <Suspense fallback={null}><NavProgress /></Suspense>
         <CartProvider>
           {bare ? children : (<>
             <a href="#main" className="sr">Skip to content</a>

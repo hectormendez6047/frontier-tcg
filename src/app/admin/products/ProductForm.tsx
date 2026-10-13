@@ -247,7 +247,7 @@ export function ProductForm({ initial, images: initialImages, locations, isAdmin
       {confirmDel && (
         <div className="confirm" style={{ marginBottom: 24 }}>
           Delete “{str("name")}” and its photos permanently? You can archive it instead to keep it.
-          <button className="btn sm danger" type="button" onClick={onDelete} disabled={saving}>Delete</button>
+          <button className="btn sm danger" type="button" onClick={onDelete} disabled={saving} aria-busy={saving}>Delete</button>
           <button className="btn sm" type="button" onClick={() => setConfirmDel(false)}>Cancel</button>
         </div>
       )}

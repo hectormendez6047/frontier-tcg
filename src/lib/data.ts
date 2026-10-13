@@ -130,6 +130,15 @@ export async function getProductsByIds(ids: string[]) {
   return (data ?? []) as unknown as Product[];
 }
 
+/** Sleeves, top loaders and magnetic holders in stock, cheapest first, for the "protect your cards" prompt. */
+export async function getProtectionItems(limit = 4) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("products_public").select(PUBLIC_COLS).eq("product_type", "accessory").gt("available_quantity", 0)
+    .or("product_kind.in.(sleeves,top_loaders,one_touch),name.ilike.%sleeve%,name.ilike.%toploader%,name.ilike.%top loader%")
+    .order("price", { ascending: true }).limit(limit);
+  return (data ?? []) as unknown as Product[];
+}
+
 export async function getFeatured(limit = 8) {
   const supabase = await createClient();
   const { data } = await supabase.from("products_public").select(PUBLIC_COLS).eq("featured", true)

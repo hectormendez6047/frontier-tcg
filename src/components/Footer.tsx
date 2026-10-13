@@ -14,7 +14,7 @@ export async function Footer() {
             <p className="muted" style={{ fontSize: 14.5, margin: "14px 0 0", maxWidth: "34ch" }}>
               Trading • Collectibles • Gaming<br />{st.address}
             </p>
-            {st.pickupHours && <p style={{ fontSize: 14.5, margin: "10px 0 0" }}><span style={{ color: "var(--gold)" }}>Pop-up shop:</span> {st.pickupHours}</p>}
+            <p style={{ fontSize: 14.5, margin: "10px 0 0" }}><span style={{ color: "var(--gold)" }}>Pop-up shop:</span> {st.pickupEnabled ? st.pickupHours : "Opening soon. We ship anywhere in the US now."}</p>
             {(st.email || st.phone) && (
               <p style={{ fontSize: 14.5, margin: "10px 0 0" }}>{[st.email, st.phone].filter(Boolean).join(" · ")}</p>
             )}

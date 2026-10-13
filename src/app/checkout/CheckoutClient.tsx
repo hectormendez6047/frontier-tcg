@@ -10,7 +10,7 @@ import { cancelCheckout, payOrder, startCheckout } from "./actions";
 
 type Settings = {
   shippingEnabled: boolean; shippingFlat: number; freeShippingOver: number; pickupEnabled: boolean; pickupFee: number; pickupFeeFreeOver: number; pickupFeeLabel: string; pickupPausedNote: string; pickupHours: string; pickupLocation: string;
-  envelopeEnabled: boolean; envelopePrice: number; envelopeMax: number; taxEnabled: boolean; taxRate: number; taxShipping: boolean;
+  envelopeEnabled: boolean; envelopePrice: number; envelopeMax: number; envelopeMaxCards: number; taxEnabled: boolean; taxRate: number; taxShipping: boolean;
 };
 type Prefill = { email: string; name: string; phone: string; address: { line1: string; line2: string; city: string; state: string; zip: string } | null } | null;
 type Method = "ship" | "envelope" | "pickup";
@@ -86,7 +86,11 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
   if (!lines.length) return <div className="wrap"><div className="page-head"><h1>Checkout</h1></div><div style={{ padding: "24px 0 64px" }}><EmptyState title="Your cart is empty"><p><Link className="btn gold" href="/finder">Find a card</Link></p></EmptyState></div></div>;
 
   const sub = lines.reduce((s, l) => s + effectivePrice(l.p) * l.q, 0);
-  const envelopeOk = st.envelopeEnabled && sub <= st.envelopeMax && lines.every((l) => SINGLE_TYPES.includes(l.p.product_type));
+  const cardCount = lines.reduce((n, l) => n + l.q, 0);
+  const envelopeWhy = !lines.every((l) => SINGLE_TYPES.includes(l.p.product_type) && !l.p.grader) ? "Raw single cards only (no sealed, accessories or slabs)."
+    : sub > Math.min(st.envelopeMax, 20) ? `Only for card orders up to ${money(Math.min(st.envelopeMax, 20))}.`
+    : cardCount > st.envelopeMaxCards ? `Fits up to ${st.envelopeMaxCards} cards. Larger orders ship tracked in a bubble mailer.` : "";
+  const envelopeOk = st.envelopeEnabled && !envelopeWhy;
   const m: Method = method === "pickup" && !st.pickupEnabled ? "ship" : method === "envelope" && !envelopeOk ? "ship" : method;
   const ship = m === "ship" ? (st.freeShippingOver > 0 && sub >= st.freeShippingOver ? 0 : st.shippingFlat) : m === "envelope" ? st.envelopePrice : 0;
   const fee = m === "pickup" && !(st.pickupFeeFreeOver > 0 && sub >= st.pickupFeeFreeOver) ? st.pickupFee : 0;
@@ -149,7 +153,7 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
               {st.envelopeEnabled && (
                 <label className="opt" style={!envelopeOk ? { opacity: .5 } : undefined}>
                   <input type="radio" name="m" value="envelope" checked={m === "envelope"} disabled={!envelopeOk} onChange={() => setMethod("envelope")} />
-                  <span><b>Card envelope (no tracking)</b><br /><span className="muted" style={{ fontSize: 14 }}>{money(st.envelopePrice)} · single cards only, orders up to {money(st.envelopeMax)}{!envelopeOk ? ". Not available for this cart." : ""}</span></span>
+                  <span><b>Card envelope (no tracking)</b><br /><span className="muted" style={{ fontSize: 14 }}>{money(st.envelopePrice)} · up to {st.envelopeMaxCards} raw singles, orders up to {money(Math.min(st.envelopeMax, 20))}. Not covered if lost.{envelopeWhy ? <><br /><b style={{ color: "var(--gold)" }}>Not available for this cart:</b> {envelopeWhy}</> : null}</span></span>
                 </label>
               )}
               {st.pickupEnabled && (
@@ -215,7 +219,7 @@ export function CheckoutClient({ prefill, ready, open, testMode, appId, location
           <div className="l"><span>Sales tax{taxed ? ` (${st.taxRate}%)` : ""}</span><span className="num mono">{taxed ? money(tax) : m === "pickup" ? money(0) : "—"}</span></div>
           <div className="l tot"><span>Total</span><span>{money(total)}</span></div>
           {err && <p className="err" role="alert" style={{ margin: 0 }}>{err}</p>}
-          <button className="btn gold" type="submit" form="coForm" disabled={!ready || !cardReady || busy}>
+          <button className="btn gold" type="submit" form="coForm" disabled={!ready || !cardReady || busy} aria-busy={busy}>
             {busy ? "Processing…" : `Pay ${money(total)}`}
           </button>
           <span className="muted" style={{ fontSize: 13 }}>Texas orders and pickups include sales tax. Your card is charged when you click Pay.</span>

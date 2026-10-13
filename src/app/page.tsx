@@ -32,24 +32,6 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="block">
-        <div className="wrap">
-          <div className="sec-head"><h2>Shop by category</h2><Link href="/shop">All products →</Link></div>
-          <CategoryTiles counts={facets.counts ?? {}} />
-        </div>
-      </section>
-
-      <section className="band">
-        <div className="wrap inner">
-          <div>
-            <div className="eyebrow">Card Finder</div>
-            <h2 style={{ marginTop: 10 }}>Looking for a <span>specific card?</span></h2>
-            <p className="muted" style={{ margin: "10px 0 0", maxWidth: "52ch" }}>Search our inventory by name, set, card number or player and see what&apos;s in stock right now.</p>
-          </div>
-          <Link className="btn gold" href="/finder">Find a card</Link>
-        </div>
-      </section>
-
       {featured.length > 0 && (
         <section className="block">
           <div className="wrap">
@@ -77,6 +59,24 @@ export default async function Home() {
           {newest.length ? <ProductGrid products={newest} lowAt={lowAt} /> : (
             <EmptyState title="New stock is on the way"><p>Products added in the admin show up here automatically.</p></EmptyState>
           )}
+        </div>
+      </section>
+
+      <section className="block" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <div className="sec-head"><h2>Shop by category</h2><Link href="/shop">All products →</Link></div>
+          <CategoryTiles counts={facets.counts ?? {}} />
+        </div>
+      </section>
+
+      <section className="band" style={{ marginBottom: 56 }}>
+        <div className="wrap inner">
+          <div>
+            <div className="eyebrow">Card Finder</div>
+            <h2 style={{ marginTop: 10 }}>Looking for a <span>specific card?</span></h2>
+            <p className="muted" style={{ margin: "10px 0 0", maxWidth: "52ch" }}>Search our inventory by name, set, card number or player and see what&apos;s in stock right now.</p>
+          </div>
+          <Link className="btn gold" href="/finder">Find a card</Link>
         </div>
       </section>
 

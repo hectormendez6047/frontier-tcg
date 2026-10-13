@@ -267,7 +267,7 @@ const SettingsInput = z.object({
   pickupHours: z.string().trim().max(120), pickupLocation: z.string().trim().max(200),
   policyReturns: z.string().max(20000), policyShipping: z.string().max(20000), policyPickup: z.string().max(20000),
   policyPrivacy: z.string().max(20000), policyTerms: z.string().max(20000),
-  envelopeEnabled: z.boolean(), envelopePrice: z.coerce.number().min(0).max(50), envelopeMax: z.coerce.number().min(0).max(1000),
+  envelopeEnabled: z.boolean(), envelopePrice: z.coerce.number().min(0).max(50), envelopeMax: z.coerce.number().min(0.01, "Envelope max must be at least $0.01.").max(20, "Envelope orders can be at most $20 so cards stay safe."), envelopeMaxCards: z.coerce.number().int().min(1).max(24),
   orderEmail: z.string().trim().max(200).refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email for new-order alerts."),
 }).partial();
 

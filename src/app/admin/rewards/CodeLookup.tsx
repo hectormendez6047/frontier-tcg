@@ -22,7 +22,7 @@ export function CodeLookup() {
       }}>
         <div className="fld" style={{ flex: 1, minWidth: 180 }}><label htmlFor="rcode">Reward code</label>
           <input id="rcode" placeholder="FT-1A2B3C4D" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} style={{ fontFamily: "var(--mono)" }} /></div>
-        <button className="btn gold" type="submit" disabled={busy || code.length < 5}>{busy ? "Checking…" : "Redeem"}</button>
+        <button className="btn gold" type="submit" disabled={busy || code.length < 5} aria-busy={busy}>{busy ? "Checking…" : "Redeem"}</button>
       </form>
       {msg && <p className={msg.err ? "err" : ""} style={{ margin: "10px 0 0", color: msg.err ? undefined : "var(--ok)" }} role="status">{msg.t}</p>}
     </div>
